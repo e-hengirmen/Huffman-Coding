@@ -49,6 +49,7 @@ int main()
     register char x;
     fread(&x,sizeof(char),1,original_fp);
     for(int i=0;i<size;i++){
+        if(x==10)printf("%d, 10\n",i+1);
         number[x]++;
         fread(&x,sizeof(char),1,original_fp);
     }
@@ -136,9 +137,13 @@ int main()
 
     FILE *codes_fp=fopen(&scode[0],"w");
     for(e=array;e<array+letter_count;e++){
+        e->len=e->bit.length();
+        bits+=e->len*e->number;
         fprintf(codes_fp,"%d %s\n",e->character,&(e->bit)[0]);
     }
     fclose(codes_fp);
+    char bits_in_last_byte=bits%8;                
+    
 
 
 
@@ -146,12 +151,40 @@ int main()
 
 
 
-
+    
     compressed_fp=fopen(&scompressed[0],"wb");
+    fwrite(&bits_in_last_byte,sizeof(char),1,compressed_fp);     
+    //The first byte of the compressed file now holds the number of bits which will be written to last byte
+    //if it is 0 than we will write use all of the last byte
+    
+    char current_byte=0,*str_pointer;
     fread(&x,sizeof(char),1,original_fp);
-    for(int i=0;i<size;i++){
+    for(int i=0,j=0;i<size-bits_in_last_byte;/*dont forget*/){
+        str_pointer=&(array[x].bit);
+        while(j<8){
+            switch(*str_pointer){
+                case '1':current_byte<<=1;current_byte|=1;j++;break;
+                case '0':current_byte<<=1;j++;break;
+                case  0 :break;
+            }
+        }
+        
         //TODO
-        /*decode the code into compressed file
+        
+        
+        /*after adding the 8th bit write the current_byte to compressed file then take the start writing the next byte
+        When you write the last bit of the corresponding number take a new number*/
+
+
+        /*translate the code into compressed file
+        first bit should have the number of bits to be written in the last byte*/
+        fread(&x,sizeof(char),1,original_fp);
+    }
+
+    for(int i=0;i<bits_in_last_byte;/*dont forget*/){
+        
+        //TODO
+        /*translate the code into compressed file
         first bit should have the number of bits to be written in the last byte*/
         fread(&x,sizeof(char),1,original_fp);
     }
