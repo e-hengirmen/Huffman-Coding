@@ -8,4 +8,4 @@ A C++ compression program based on Huffman's lossless compression algorithm and 
 * Add decoding function into compressor
 * Finish the implementation
 * Add decoder
-* Add a size checker
+* ~~Add a size checker~~(DONE)
