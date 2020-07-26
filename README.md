@@ -8,5 +8,6 @@ A C++ compression program based on Huffman's lossless compression algorithm and 
 * ~~Add decoding function into compressor~~(DONE)
 * ~~Finish the implementation~~(DONE)
 * Add decompressor
+* Merge compressed and code file
 * ~~Add a size checker~~(DONE)
 
