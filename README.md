@@ -1,11 +1,12 @@
 # Huffman_Coding
-A C++ compression program based on Huffman's lossless compression algorithm and decoder
+A C++ compression program based on Huffman's lossless compression algorithm and its decompressor
 
-**It's not finished and decoder hasnt been added. Use at your own discretion**
+**The compressor has been finished but it hasn't been tested thoughly and decompressor hasnt been added. Use at your own discretion**
 
 ## TODOs
 * ~~Add translation function to compressor~~(DONE)
-* Add decoding function into compressor
-* Finish the implementation
-* Add decoder
+* ~~Add decoding function into compressor~~(DONE)
+* ~~Finish the implementation~~(DONE)
+* Add decompressor
 * ~~Add a size checker~~(DONE)
+

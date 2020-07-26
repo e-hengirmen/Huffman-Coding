@@ -5,12 +5,12 @@
 #include <cstdlib>
 using namespace std;
 
+
 struct ersel{
     ersel *left,*right;
     int number;
     char character;
     string bit;
-    int len;
 };
 
 bool erselcompare0(ersel a,ersel b){
@@ -43,25 +43,24 @@ int main()
     scompressed=s+".compressed";
 
     fseek(original_fp,0,SEEK_END);
-    long long int size=ftell(original_fp)/sizeof(char);
-    cout<<"size of the original file: "<<size<<" bytes"<<endl;                  //delete later
+    long long int size=ftell(original_fp);
+    cout<<"The size of the original file is: "<<size<<" bytes"<<endl;
     rewind(original_fp);
 
     register char x;
-    fread(&x,sizeof(char),1,original_fp);
+    fread(&x,1,1,original_fp);
     for(int i=0;i<size;i++){
         number[x]++;
-        fread(&x,sizeof(char),1,original_fp);
+        fread(&x,1,1,original_fp);
     }
     rewind(original_fp);
+    //Above code block counts all of the possible bytes on the original file and records them
 
 	for(int *i=number;i<number+256;i++){                 
         	if(*i){
 			letter_count++;
 			}
     }
-
-
 
     ersel array[letter_count*2-1];
     register ersel *e=array;
@@ -137,9 +136,10 @@ int main()
 
 
     FILE *codes_fp=fopen(&scode[0],"w");
+    string str_arr[256];
     for(e=array;e<array+letter_count;e++){
-        e->len=e->bit.length();
-        bits+=e->len*e->number;
+        bits+=e->bit.length()*e->number;
+        str_arr[e->character]=e->bit;
         fprintf(codes_fp,"%d %s\n",e->character,&(e->bit)[0]);
     }
     fclose(codes_fp);
@@ -147,14 +147,18 @@ int main()
     /* This part of the code is doing 2 things
     1- It determines number of bits that are gonna be written to the compressed file
         (this number only represents number of bytes thats going to be translated it doesn't include translation script
-    2-It writes the translation script into [name of the original].codes file */
+    2-It writes the translation script into [name of the original].codes file and the str_arr array */
 
-    cout<<"size of the compressed file will be a little more then: "<<bits/8<<" bytes"
-        <<"If you want to continue write anything and press enter\nIf you wish to abort this process write 0 and press enter";
+    cout<<"The size of the compressed file will be a little more then: "<<bits/8<<" bytes"<<endl;
+    if(bits/8<size){
+        cout<<"Compressed file's size will be near %"<<100*((float)bits/8/size)<<" of the original file"<<endl;
+    }
+    cout<<"If you wish to abort this process write 0 and press enter"<<endl
+        <<"If you want to continue write any number and press enter";
     int check;
     cin>>check;
     if(!check){
-        cout<<"Your process has been aborted \nDon't forget to delete "<<scode<<" file";
+        cout<<endl<<"Your process has been aborted"<<endl<<"Don't forget to delete "<<scode<<" file";
         exit(0);
     }
 
@@ -164,14 +168,14 @@ int main()
 
     
     compressed_fp=fopen(&scompressed[0],"wb");
-    fwrite(&bits_in_last_byte,sizeof(char),1,compressed_fp);     
+    fwrite(&bits_in_last_byte,1,1,compressed_fp);
     //The first byte of the compressed file now holds the number of bits which will be written to last byte
     //if it is 0 than we will use all of the last byte
     
     char current_byte=0,*str_pointer;
-    fread(&x,sizeof(char),1,original_fp);
+    fread(&x,1,1,original_fp);
     for(int i=0,current_bit_count=0;i<bits;){
-        str_pointer=&((array[x].bit)[0]);
+        str_pointer=&str_arr[x][0];
         while(*str_pointer){
             switch(*str_pointer){
                 case '1':i++;current_byte<<=1;current_byte|=1;current_bit_count++;break;
@@ -180,12 +184,12 @@ int main()
             }
             if(current_bit_count==8){
                 current_bit_count=0;
-                fwrite(&current_byte,sizeof(char),1,compressed_fp);
+                fwrite(&current_byte,1,1,compressed_fp);
                 current_byte=0;
             }
             str_pointer++;
         }
-        fread(&x,sizeof(char),1,original_fp);
+        fread(&x,1,1,original_fp);
     }
     /*
     - Above code writes current_byte to compressed file,
@@ -193,10 +197,10 @@ int main()
     - After it writes the last bit corresponding to the number we read from the original file,
     it reads a new number from the original file */
     if(bits_in_last_byte){
-        fwrite(&current_byte,sizeof(char),1,compressed_fp);
+        fwrite(&current_byte,1,1,compressed_fp);
     }
 
-    cout<<"Compression process has been done\n";
+    cout<<"Compression process has been done"<<endl;
 
 
 }
