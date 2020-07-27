@@ -154,11 +154,12 @@ int main()
         cout<<"Compressed file's size will be near %"<<100*((float)bits/8/size)<<" of the original file"<<endl;
     }
     cout<<"If you wish to abort this process write 0 and press enter"<<endl
-        <<"If you want to continue write any number and press enter";
+        <<"If you want to continue write any other number and press enter";
     int check;
     cin>>check;
     if(!check){
-        cout<<endl<<"Your process has been aborted"<<endl<<"Don't forget to delete "<<scode<<" file";
+        cout<<endl<<"Your process has been aborted"<<endl<<;
+        remove(&scode[0]);
         exit(0);
     }
 
