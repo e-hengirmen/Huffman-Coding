@@ -5,7 +5,7 @@ A C++ compression program based on Huffman's lossless compression algorithm and 
 
 ## TODOs
 * Add decompressor
-* Merge .compressed and .code files
+* ~~Merge .compressed and .code files~~(DONE)
 * ~~Add a size checker~~(DONE)
 * Improve documentation
 

@@ -158,7 +158,7 @@ int main()
     int check;
     cin>>check;
     if(!check){
-        cout<<endl<<"Your process has been aborted"<<endl<<;
+        cout<<endl<<"Your process has been aborted"<<endl;
         remove(&scode[0]);
         exit(0);
     }
