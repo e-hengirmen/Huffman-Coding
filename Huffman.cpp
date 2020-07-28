@@ -37,14 +37,13 @@ int main(){
     }
     
     cout<<"Enter the name of the file you want to compress"<<endl;
-    string s,scode,scompressed;
+    string s,scompressed;
 	cin>>s;
     register FILE *original_fp=fopen(&s[0],"rb"),*compressed_fp;
     if(NULL==original_fp){
         cout<<s<<" file does not exist"<<endl;
         return 0;
     }
-    scode=s+".code";
     scompressed=s+".compressed";
 
     fseek(original_fp,0,SEEK_END);
@@ -144,6 +143,18 @@ int main(){
     compressed_fp=fopen(&scompressed[0],"wb");
     fwrite(&letter_count,1,1,compressed_fp);
     total_bits+=8;
+
+    char password[5];
+    cout<<"Enter 4 character password"<<endl;
+    cin>>password;
+    if(password.length()!=4){
+        cout<<"Password isn't 4 characters long"<<endl<<"Process has been terminated"<<endl;
+        remove(&scompressed[0]);
+        exit(0);
+    }
+    fwrite(password,1,4,compressed_fp);
+    total_bits+=32;
+
     // The first byte of the compressed file is the number of different characters
     // that we re gonna use to decode this compressed file.
     // This will be useful when we re decompressing this file later on.
@@ -210,7 +221,7 @@ int main(){
     int check;
     cin>>check;
     if(!check){
-        cout<<endl<<"Your process has been aborted"<<endl<<"Don't forget to delete "<<scode<<" file";
+        cout<<endl<<"Process has been aborted"<<endl;
         fclose(compressed_fp);
         remove(&scompressed[0]);
         exit(0);
@@ -243,6 +254,8 @@ int main(){
     if(bits_in_last_byte){
         fwrite(&current_byte,1,1,compressed_fp);
     }
+    fclose(compressed_fp);
+    fclose(original_fp);
 
     cout<<bytes2<<"Compression is complete"<<endl;
     
