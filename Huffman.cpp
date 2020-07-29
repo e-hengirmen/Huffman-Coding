@@ -20,6 +20,7 @@ bool erselcompare0(ersel a,ersel b){
 bool erselcomparec(ersel a,ersel b){
     return a.character<b.character;
 }
+
     
 
 
@@ -155,11 +156,16 @@ int main(){
         cin>>check_password;
         if(check_password){
             string password;
-            cout<<"Enter password: ";
+            cout<<"Enter your password (Do not use spaces): ";
             cin>>password;
             int pasword_length=password.length();
             if(password_length==0){
                 cout<<"You did not enter a password"<<endl<<"Process has been terminated"<<endl;
+                remove(&scompressed[0]);
+                return 0;
+            }
+            if(password_length>255){
+                cout<<"Password cannot contain more then 255 characters"<<endl<<"Process has been terminated"<<endl;
                 remove(&scompressed[0]);
                 return 0;
             }
@@ -203,7 +209,7 @@ int main(){
             switch(*str_pointer){
                 case '1':current_byte<<=1;current_byte|=1;current_bit_count++;break;
                 case '0':current_byte<<=1;current_bit_count++;break;
-                default:cout<<"An error has occurred"<<endl;exit(EXIT_FAILURE);
+                default:cout<<"An error has occurred"<<endl;return 1;
             }
             if(current_bit_count==8){
                 current_bit_count=0;
@@ -242,7 +248,7 @@ int main(){
         cout<<endl<<"Process has been aborted"<<endl;
         fclose(compressed_fp);
         remove(&scompressed[0]);
-        exit(0);
+        return 0;
     }
 
     
@@ -254,7 +260,7 @@ int main(){
             switch(*str_pointer){
                 case '1':i++;current_byte<<=1;current_byte|=1;current_bit_count++;break;
                 case '0':i++;current_byte<<=1;current_bit_count++;break;
-                default:cout<<"An error has occurred"<<endl;exit(EXIT_FAILURE);
+                default:cout<<"An error has occurred"<<endl;return 1;
             }
             if(current_bit_count==8){
                 current_bit_count=0;
