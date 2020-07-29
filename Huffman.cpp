@@ -158,7 +158,7 @@ int main(){
             string password;
             cout<<"Enter your password (Do not use spaces): ";
             cin>>password;
-            int pasword_length=password.length();
+            int password_length=password.length();
             if(password_length==0){
                 cout<<"You did not enter a password"<<endl<<"Process has been terminated"<<endl;
                 remove(&scompressed[0]);
