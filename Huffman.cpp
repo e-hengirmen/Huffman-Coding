@@ -138,26 +138,44 @@ int main(){
     }
 
 
+
     int current_bit_count=0;
     char current_byte=0,*str_pointer,len,current_character;
     compressed_fp=fopen(&scompressed[0],"wb");
     fwrite(&letter_count,1,1,compressed_fp);
     total_bits+=8;
-
-    char password[5];
-    cout<<"Enter 4 character password"<<endl;
-    cin>>password;
-    if(password.length()!=4){
-        cout<<"Password isn't 4 characters long"<<endl<<"Process has been terminated"<<endl;
-        remove(&scompressed[0]);
-        exit(0);
-    }
-    fwrite(password,1,4,compressed_fp);
-    total_bits+=32;
-
     // The first byte of the compressed file is the number of different characters
     // that we re gonna use to decode this compressed file.
     // This will be useful when we re decompressing this file later on.
+    
+    {
+        cout<<"If you want a password write any number other then 0"<<endl
+            <<"If you do not, write 0"<<endl;
+        int check_password;
+        cin>>check_password;
+        if(check_password){
+            string password;
+            cout<<"Enter password: ";
+            cin>>password;
+            int pasword_length=password.length();
+            if(password_length==0){
+                cout<<"You did not enter a password"<<endl<<"Process has been terminated"<<endl;
+                remove(&scompressed[0]);
+                return 0;
+            }
+            fwrite(&password_length,1,1,compressed_fp);
+            fwrite(&password[0],1,password_length,compressed_fp);
+            total_bits+=8+8*password_length;
+        }
+        else{
+            fwrite(&check_password,1,1,compressed_fp);
+            total_bits+=8;
+        }
+    }
+    //Above code block puts password to compressed file
+    
+
+    
 
     string str_arr[256];
     for(e=array;e<array+letter_count;e++){
