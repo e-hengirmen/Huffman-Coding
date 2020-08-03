@@ -9,15 +9,15 @@ using namespace std;
 /*
 COMPRESSED FILE WILL BE LIKE THIS
 
-first (one byte)    ->  letter_count
-second (one byte)   ->  password_length
-third (bytes)       ->  password
-fourth (byte group)
-    4.1 (one byte)  ->  current character
-    4.2 (one byte)  ->  length of the transformation
-    4.3 (bits)      ->  transformation code of that character
-fifth (one byte)    ->  bits_in last byte
-sixth (bytes)       ->  transformed version of the original file
+first (one byte)        ->  letter_count
+second (one byte)       ->  password_length
+third (bytes)           ->  password
+fourth (bit groups)
+    4.1 (8 bits)        ->  current character
+    4.2 (8 bits)        ->  length of the transformation
+    4.3 (bits)          ->  transformation code of that character
+fifth (8 bits)          ->  bits_in last byte
+sixth (a lot of bits)   ->  transformed version of the original file
 */
 
 
@@ -207,13 +207,15 @@ int main(){
         current_byte<<=8-current_bit_count;
         current_byte|=(current_character>>current_bit_count);
         fwrite(&current_byte,1,1,compressed_fp);
-        current_byte=(current_character<<(8-current_bit_count))>>(8-current_bit_count);
+        current_byte=(current_character<<(8-current_bit_count));
+        current_byte>>=(8-current_bit_count);
         
         current_byte<<=8-current_bit_count;
         current_byte|=(len>>current_bit_count);
         fwrite(&current_byte,1,1,compressed_fp);
-        current_byte=(len<<(8-current_bit_count))>>(8-current_bit_count);
-
+        current_byte=(len<<(8-current_bit_count));
+        current_byte>>=(8-current_bit_count);
+        
         total_bits+=len+16;
         // above code blocks will write the character and the number of bits
         // we re going to need to represent this specific character's transformated version
