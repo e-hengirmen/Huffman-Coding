@@ -24,7 +24,7 @@ sixth (a lot of bits)   ->  transformed version of the original file
 struct ersel{
     ersel *left,*right;
     int number;
-    char character;
+    unsigned char character;
     string bit;
 };
 
@@ -46,7 +46,7 @@ bool erselcomparec(ersel a,ersel b){
 
 int main(){
     int number[256];
-    long int bits=0,total_bits=0,bytes2=0;
+    long int bits=0,total_bits=0;
     int letter_count=0;
     for(int *i=number;i<number+256;i++){                       
         *i=0;
@@ -67,7 +67,7 @@ int main(){
     cout<<"The size of the original file is: "<<size<<" bytes"<<endl;
     rewind(original_fp);
 
-    register char x;
+    register unsigned char x;
     fread(&x,1,1,original_fp);
     for(long int i=0;i<size;i++){
         number[x]++;
@@ -156,7 +156,7 @@ int main(){
 
 
     int current_bit_count=0;
-    char current_byte=0,*str_pointer,len,current_character;
+    unsigned char current_byte=0,*str_pointer,len,current_character;
     compressed_fp=fopen(&scompressed[0],"wb");
     fwrite(&letter_count,1,1,compressed_fp);
     total_bits+=8;
@@ -215,7 +215,7 @@ int main(){
         fwrite(&current_byte,1,1,compressed_fp);
         current_byte=(len<<(8-current_bit_count));
         current_byte>>=(8-current_bit_count);
-        
+
         total_bits+=len+16;
         // above code blocks will write the character and the number of bits
         // we re going to need to represent this specific character's transformated version
@@ -239,7 +239,7 @@ int main(){
          bits+=len*e->number;
     }           
     total_bits+=bits;
-    char bits_in_last_byte=total_bits%8;
+    unsigned char bits_in_last_byte=total_bits%8;
     if(bits_in_last_byte){
         total_bits=(total_bits/8+1)*8;
         // from this point on total bits doesnt represent total bits but
@@ -298,6 +298,6 @@ int main(){
     fclose(compressed_fp);
     fclose(original_fp);
 
-    cout<<bytes2<<"Compression is complete"<<endl;
+    cout<<"Compression is complete"<<endl;
     
 }

@@ -66,20 +66,29 @@ int main(){
     str_without_compress(file);
     strcpy(newfile+4,file);
     fread(&letter_count,1,1,fp_compressed);
+    printf("letter count:%d\n",letter_count);
 
     fread(&password_length,1,1,fp_compressed);
     if(password_length){
-        char temp[password_length+1];
-        string real_password,password_input;
-        fread(temp,1,password_length,fp_compressed);
-        real_password=temp;
+        char real_password[password_length+1],password_input[257];
+        fread(real_password,1,password_length,fp_compressed);
+        real_password[password_length]=0;
         cout<<"Enter password:";
         cin>>password_input;
-        if(real_password!=password_input){
+        char *rp=real_password,*pi=password_input;
+        for(;*rp&&*pi;rp++,pi++){
+            if(*rp!=*pi){
+                cout<<"Wrong password"<<endl;
+                fclose(fp_compressed);
+                exit(0);
+            }
+        }
+        if(*rp!=*pi){
             cout<<"Wrong password"<<endl;
             fclose(fp_compressed);
             exit(0);
         }
+        cout<<"Correct Password"<<endl;
     }
     //above code block checks the password
     
@@ -101,6 +110,7 @@ int main(){
                 transform_to_string(temp_byte,&s);
                 transformation[current_character]+=s;
             }
+            //cout<<transformation[(current_character]<<endl;
         
         }
     }
