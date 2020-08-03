@@ -6,6 +6,21 @@
 using namespace std;
 
 
+/*
+COMPRESSED FILE WILL BE LIKE THIS
+
+first (one byte)    ->  letter_count
+second (one byte)   ->  password_length
+third (bytes)       ->  password
+fourth (byte group)
+    4.1 (one byte)  ->  current character
+    4.2 (one byte)  ->  length of the transformation
+    4.3 (bits)      ->  transformation code of that character
+fifth (one byte)    ->  bits_in last byte
+sixth (bytes)       ->  transformed version of the original file
+*/
+
+
 struct ersel{
     ersel *left,*right;
     int number;
