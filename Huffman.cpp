@@ -24,7 +24,7 @@ sixth (a lot of bits)   ->  transformed version of the original file
 struct ersel{
     ersel *left,*right;
     int number;
-    unsigned char character;
+    char character;
     string bit;
 };
 
@@ -67,10 +67,10 @@ int main(){
     cout<<"The size of the original file is: "<<size<<" bytes"<<endl;
     rewind(original_fp);
 
-    register unsigned char x;
+    register char x;
     fread(&x,1,1,original_fp);
     for(long int i=0;i<size;i++){
-        number[x]++;
+        number[(unsigned char)x]++;
         fread(&x,1,1,original_fp);
     }
     rewind(original_fp);
@@ -156,7 +156,7 @@ int main(){
 
 
     int current_bit_count=0;
-    unsigned char current_byte=0,*str_pointer,len,current_character;
+    char current_byte=0,*str_pointer,len,current_character;
     compressed_fp=fopen(&scompressed[0],"wb");
     fwrite(&letter_count,1,1,compressed_fp);
     total_bits+=8;
@@ -200,7 +200,7 @@ int main(){
 
     string str_arr[256];
     for(e=array;e<array+letter_count;e++){
-        str_arr[e->character]=e->bit;
+        str_arr[(unsigned char)(e->character)]=e->bit;
         len=e->bit.length();
         current_character=e->character;
 
@@ -216,7 +216,7 @@ int main(){
         current_byte=(len<<(8-current_bit_count));
         current_byte>>=(8-current_bit_count);
 
-        total_bits+=len+16;
+        total_bits+=(unsigned char)len+16;
         // above code blocks will write the character and the number of bits
         // we re going to need to represent this specific character's transformated version
         // after here we are going to write the transformed version of the number bit by bit.
@@ -236,10 +236,10 @@ int main(){
            str_pointer++;
         }
         
-         bits+=len*e->number;
+         bits+=(unsigned char)len*e->number;
     }           
     total_bits+=bits;
-    unsigned char bits_in_last_byte=total_bits%8;
+    char bits_in_last_byte=total_bits%8;
     if(bits_in_last_byte){
         total_bits=(total_bits/8+1)*8;
         // from this point on total bits doesnt represent total bits but
@@ -272,7 +272,7 @@ int main(){
     
     fread(&x,1,1,original_fp);
     for(int i=0;i<bits;){
-        str_pointer=&str_arr[x][0];
+        str_pointer=&str_arr[(unsigned char)x][0];
         while(*str_pointer){
             switch(*str_pointer){
                 case '1':i++;current_byte<<=1;current_byte|=1;current_bit_count++;break;
