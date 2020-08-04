@@ -11,7 +11,7 @@ COMPRESSED FILE WILL BE LIKE THIS
 
 first (one byte)        ->  letter_count
 second (one byte)       ->  password_length
-third (bytes)           ->  password
+third (bytes)           ->  password (if password exists)
 fourth (bit groups)
     4.1 (8 bits)        ->  current character
     4.2 (8 bits)        ->  length of the transformation
@@ -24,7 +24,7 @@ sixth (a lot of bits)   ->  transformed version of the original file
 struct ersel{
     ersel *left,*right;
     int number;
-    char character;
+    unsigned char character;
     string bit;
 };
 
@@ -36,7 +36,9 @@ bool erselcomparec(ersel a,ersel b){
     return a.character<b.character;
 }
 
-    
+
+unsigned char check_array[9]={0,1,2,4,8,16,32,64,128};
+
 
 
 
@@ -67,14 +69,16 @@ int main(){
     cout<<"The size of the original file is: "<<size<<" bytes"<<endl;
     rewind(original_fp);
 
-    register char x;
+
+
+    register unsigned char x;
     fread(&x,1,1,original_fp);
     for(long int i=0;i<size;i++){
-        number[(unsigned char)x]++;
+        number[x]++;
         fread(&x,1,1,original_fp);
     }
     rewind(original_fp);
-    //Above code block counts all of the possible bytes on the original file and records them
+    //Above code block counts all of the possible unique bytes on the original file and records them
 
 	for(int *i=number;i<number+256;i++){                 
         	if(*i){
@@ -101,8 +105,11 @@ int main(){
         current->number=min1->number+min2->number;
         current->left=min1;
         current->right=min2;
+        //-------------------------------------------
+        //Might need to change it if we change ersel struct to work on array of unsigned chars instead of string
         min1->bit="1";
         min2->bit="0";     
+        //-------------------------------------------
         current++;
         
         if(isleaf>=array+letter_count){
@@ -142,7 +149,8 @@ int main(){
     }
     
 
-    
+    //-------------------------------------------
+    //Might need to change it if we change ersel struct to work on array of unsigned chars instead of string
     for(e=array+letter_count*2-2;e>array-1;e--){
         if(e->left){
             e->left->bit=e->bit+e->left->bit;
@@ -152,18 +160,33 @@ int main(){
         }
         
     }
+    //--------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
 
 
 
     int current_bit_count=0;
-    char current_byte=0,*str_pointer,len,current_character;
+    char *str_pointer;
+    unsigned char current_byte=0,len,current_character;
     compressed_fp=fopen(&scompressed[0],"wb");
     fwrite(&letter_count,1,1,compressed_fp);
     total_bits+=8;
-    // The first byte of the compressed file is the number of different characters
+    // The program writes the number of different bytes
     // that we re gonna use to decode this compressed file.
     // This will be useful when we re decompressing this file later on.
     
+
+
     {
         cout<<"If you want a password write any number other then 0"<<endl
             <<"If you do not, write 0"<<endl;
@@ -176,15 +199,20 @@ int main(){
             int password_length=password.length();
             if(password_length==0){
                 cout<<"You did not enter a password"<<endl<<"Process has been terminated"<<endl;
+                fclose(compressed_fp);
+                fclose(original_fp);
                 remove(&scompressed[0]);
                 return 0;
             }
             if(password_length>255){
                 cout<<"Password cannot contain more then 255 characters"<<endl<<"Process has been terminated"<<endl;
+                fclose(compressed_fp);
+                fclose(original_fp);
                 remove(&scompressed[0]);
                 return 0;
             }
-            fwrite(&password_length,1,1,compressed_fp);
+            unsigned char password_length_unsigned=password_length;
+            fwrite(&password_length_unsigned,1,1,compressed_fp);
             fwrite(&password[0],1,password_length,compressed_fp);
             total_bits+=8+8*password_length;
         }
@@ -194,31 +222,30 @@ int main(){
         }
     }
     //Above code block puts password to compressed file
-    
 
     
 
     string str_arr[256];
     for(e=array;e<array+letter_count;e++){
-        str_arr[(unsigned char)(e->character)]=e->bit;
+        str_arr[(e->character)]=e->bit;
         len=e->bit.length();
         current_character=e->character;
 
         current_byte<<=8-current_bit_count;
-        current_byte|=(current_character>>current_bit_count);
+        current_byte|=((unsigned char)(current_character>>current_bit_count));
         fwrite(&current_byte,1,1,compressed_fp);
         current_byte=(current_character<<(8-current_bit_count));
         current_byte>>=(8-current_bit_count);
         
         current_byte<<=8-current_bit_count;
-        current_byte|=(len>>current_bit_count);
+        current_byte|=((unsigned char)(len>>current_bit_count));
         fwrite(&current_byte,1,1,compressed_fp);
         current_byte=(len<<(8-current_bit_count));
         current_byte>>=(8-current_bit_count);
 
-        total_bits+=(unsigned char)len+16;
-        // above code blocks will write the character and the number of bits
-        // we re going to need to represent this specific character's transformated version
+        total_bits+=len+16;
+        // above code blocks will write the byte and the number of bits
+        // we re going to need to represent this specific byte's transformated version
         // after here we are going to write the transformed version of the number bit by bit.
         
         str_pointer=&e->bit[0];
@@ -226,7 +253,11 @@ int main(){
             switch(*str_pointer){
                 case '1':current_byte<<=1;current_byte|=1;current_bit_count++;break;
                 case '0':current_byte<<=1;current_bit_count++;break;
-                default:cout<<"An error has occurred"<<endl;return 1;
+                default:cout<<"An error has occurred"<<endl<<"Compression process aborted"<<endl;
+                fclose(compressed_fp);
+                fclose(original_fp);
+                remove(&scompressed[0]);
+                return 1;
             }
             if(current_bit_count==8){
                 current_bit_count=0;
@@ -236,10 +267,10 @@ int main(){
            str_pointer++;
         }
         
-         bits+=(unsigned char)len*e->number;
+         bits+=len*e->number;
     }           
     total_bits+=bits;
-    char bits_in_last_byte=total_bits%8;
+    unsigned char bits_in_last_byte=total_bits%8;
     if(bits_in_last_byte){
         total_bits=(total_bits/8+1)*8;
         // from this point on total bits doesnt represent total bits but
@@ -254,8 +285,9 @@ int main(){
     2-It writes the translation script into [name of the original].compressed file and the str_arr array */
 
     cout<<"The size of the compressed file will be: "<<total_bits/8<<" bytes"<<endl;
-    if(total_bits/8<size){
-        cout<<"Compressed file's size will be %"<<100*((float)total_bits/8/size)<<" of the original file"<<endl;
+    cout<<"Compressed file's size will be %"<<100*((float)total_bits/8/size)<<" of the original file"<<endl;
+    if(total_bits/8>size){
+        cout<<endl<<"COMPRESSED FILE'S SIZE WILL BE HIGHER THAN THE ORIGINAL"<<endl<<endl;
     }
     cout<<"If you wish to abort this process write 0 and press enter"<<endl
         <<"If you want to continue write any other number and press enter"<<endl;
@@ -264,6 +296,7 @@ int main(){
     if(!check){
         cout<<endl<<"Process has been aborted"<<endl;
         fclose(compressed_fp);
+        fclose(original_fp);
         remove(&scompressed[0]);
         return 0;
     }
@@ -272,12 +305,16 @@ int main(){
     
     fread(&x,1,1,original_fp);
     for(int i=0;i<bits;){
-        str_pointer=&str_arr[(unsigned char)x][0];
+        str_pointer=&str_arr[x][0];
         while(*str_pointer){
             switch(*str_pointer){
                 case '1':i++;current_byte<<=1;current_byte|=1;current_bit_count++;break;
                 case '0':i++;current_byte<<=1;current_bit_count++;break;
-                default:cout<<"An error has occurred"<<endl;return 1;
+                default:cout<<"An error has occurred"<<endl<<"Process has been aborted";
+                fclose(compressed_fp);
+                fclose(original_fp);
+                remove(&scompressed[0]);
+                return 2;
             }
             if(current_bit_count==8){
                 current_bit_count=0;
