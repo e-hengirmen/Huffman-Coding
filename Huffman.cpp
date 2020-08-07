@@ -5,6 +5,9 @@
 #include <cstdlib>
 using namespace std;
 
+void write_from_uChar(unsigned char,unsigned char*,int*,FILE*);
+
+
 
 /*
 COMPRESSED FILE WILL BE LIKE THIS
@@ -161,11 +164,6 @@ int main(){
 
 
 
-
-
-    int current_bit_count=0;
-    char *str_pointer;
-    unsigned char current_byte=0,len,current_character;
     compressed_fp=fopen(&scompressed[0],"wb");
     fwrite(&letter_count,1,1,compressed_fp);
     total_bits+=8;
@@ -182,7 +180,7 @@ int main(){
         cin>>check_password;
         if(check_password){
             string password;
-            cout<<"Enter your password (Do not use spaces): ";
+            cout<<"Enter your password (Do not use whitespaces): ";
             cin>>password;
             int password_length=password.length();
             if(password_length==0){
@@ -192,8 +190,8 @@ int main(){
                 remove(&scompressed[0]);
                 return 0;
             }
-            if(password_length>255){
-                cout<<"Password cannot contain more then 255 characters"<<endl<<"Process has been terminated"<<endl;
+            if(password_length>100){
+                cout<<"Password cannot contain more then 100 characters"<<endl<<"Process has been terminated"<<endl;
                 fclose(compressed_fp);
                 fclose(original_fp);
                 remove(&scompressed[0]);
@@ -211,38 +209,29 @@ int main(){
     }
     //Above code block puts password to compressed file
 
-    
 
+    char *str_pointer;
+    unsigned char current_byte,len,current_character;
+    int current_bit_count=0;
     string str_arr[256];
     for(e=array;e<array+letter_count;e++){
         str_arr[(e->character)]=e->bit;
         len=e->bit.length();
         current_character=e->character;
 
-        cout<<"len="<<(int)len<<endl;       //sil
-
-
-        current_byte<<=8-current_bit_count;
-        current_byte|=((unsigned char)(current_character>>current_bit_count));
-        fwrite(&current_byte,1,1,compressed_fp);
-        printf("ilki karakter: %d\n",current_byte);      //sil
-        current_byte=(current_character<<(8-current_bit_count));
-        current_byte>>=(8-current_bit_count);
-        
-        current_byte<<=8-current_bit_count;
-        current_byte|=((unsigned char)(len>>current_bit_count));
-        fwrite(&current_byte,1,1,compressed_fp);
-        printf("ilki len: %d\n",current_byte);      //sil
-        current_byte=(len<<(8-current_bit_count));
-        current_byte>>=(8-current_bit_count);
-
+        write_from_uChar(current_character,&current_byte,&current_bit_count,compressed_fp);
+        write_from_uChar(len,&current_byte,&current_bit_count,compressed_fp);
         total_bits+=len+16;
-        // above code blocks will write the byte and the number of bits
+        // above lines will write the byte and the number of bits
         // we re going to need to represent this specific byte's transformated version
         // after here we are going to write the transformed version of the number bit by bit.
         
         str_pointer=&e->bit[0];
         while(*str_pointer){
+            if(current_bit_count==8){
+                fwrite(&current_byte,1,1,compressed_fp);
+                current_bit_count=0;
+            }
             switch(*str_pointer){
                 case '1':current_byte<<=1;current_byte|=1;current_bit_count++;break;
                 case '0':current_byte<<=1;current_bit_count++;break;
@@ -251,11 +240,6 @@ int main(){
                 fclose(original_fp);
                 remove(&scompressed[0]);
                 return 1;
-            }
-            if(current_bit_count==8){
-                current_bit_count=0;
-                fwrite(&current_byte,1,1,compressed_fp);
-                current_byte=0;
             }
            str_pointer++;
         }
@@ -300,6 +284,10 @@ int main(){
     for(long long int i=0;i<bits;){
         str_pointer=&str_arr[x][0];
         while(*str_pointer){
+            if(current_bit_count==8){
+                fwrite(&current_byte,1,1,compressed_fp);
+                current_bit_count=0;
+            }
             switch(*str_pointer){
                 case '1':i++;current_byte<<=1;current_byte|=1;current_bit_count++;break;
                 case '0':i++;current_byte<<=1;current_bit_count++;break;
@@ -309,19 +297,11 @@ int main(){
                 remove(&scompressed[0]);
                 return 2;
             }
-            if(current_bit_count==8){
-                current_bit_count=0;
-                fwrite(&current_byte,1,1,compressed_fp);
-                current_byte=0;
-            }
             str_pointer++;
         }
         fread(&x,1,1,original_fp);
     }
-    /*
-    - Above code writes bytes that are translated from original file into compressed file.
-    - After it writes the last bit corresponding to the number we read from the original file,
-    it reads a new number from the original file */
+    //- Above code writes bytes that are translated from original file to the compressed file.
     if(bits_in_last_byte){
         fwrite(&current_byte,1,1,compressed_fp);
     }
@@ -330,4 +310,20 @@ int main(){
 
     cout<<"Compression is complete"<<endl;
     
+}
+
+void write_from_uChar(unsigned char uChar,unsigned char *current_byte,int *current_bit_count,FILE *fp_write){
+    unsigned char check=0b10000000;
+    
+    for(int i=0;i<8;i++){
+        if(*current_bit_count==8){
+            fwrite(current_byte,1,1,fp_write);
+            *current_bit_count=0;
+        }
+
+        (*current_byte)<<=1;
+        if(uChar&check)(*current_byte)|=1;
+        uChar<<=1;
+        (*current_bit_count)++;
+    }
 }
