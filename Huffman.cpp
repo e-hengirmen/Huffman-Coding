@@ -37,18 +37,12 @@ bool erselcomparec(ersel a,ersel b){
 }
 
 
-unsigned char check_array[9]={0,1,2,4,8,16,32,64,128};
-
-
-
-
-
 
 
 
 int main(){
     int number[256];
-    long int bits=0,total_bits=0;
+    long long int bits=0,total_bits=0;
     int letter_count=0;
     for(int *i=number;i<number+256;i++){                       
         *i=0;
@@ -65,7 +59,7 @@ int main(){
     scompressed=s+".compressed";
 
     fseek(original_fp,0,SEEK_END);
-    long int size=ftell(original_fp);
+    long long int size=ftell(original_fp);
     cout<<"The size of the original file is: "<<size<<" bytes"<<endl;
     rewind(original_fp);
 
@@ -73,7 +67,7 @@ int main(){
 
     register unsigned char x;
     fread(&x,1,1,original_fp);
-    for(long int i=0;i<size;i++){
+    for(long long int i=0;i<size;i++){
         number[x]++;
         fread(&x,1,1,original_fp);
     }
@@ -105,11 +99,8 @@ int main(){
         current->number=min1->number+min2->number;
         current->left=min1;
         current->right=min2;
-        //-------------------------------------------
-        //Might need to change it if we change ersel struct to work on array of unsigned chars instead of string
         min1->bit="1";
         min2->bit="0";     
-        //-------------------------------------------
         current++;
         
         if(isleaf>=array+letter_count){
@@ -149,8 +140,6 @@ int main(){
     }
     
 
-    //-------------------------------------------
-    //Might need to change it if we change ersel struct to work on array of unsigned chars instead of string
     for(e=array+letter_count*2-2;e>array-1;e--){
         if(e->left){
             e->left->bit=e->bit+e->left->bit;
@@ -160,7 +149,6 @@ int main(){
         }
         
     }
-    //--------------------------------------------
 
 
 
@@ -231,15 +219,20 @@ int main(){
         len=e->bit.length();
         current_character=e->character;
 
+        cout<<"len="<<(int)len<<endl;       //sil
+
+
         current_byte<<=8-current_bit_count;
         current_byte|=((unsigned char)(current_character>>current_bit_count));
         fwrite(&current_byte,1,1,compressed_fp);
+        printf("ilki karakter: %d\n",current_byte);      //sil
         current_byte=(current_character<<(8-current_bit_count));
         current_byte>>=(8-current_bit_count);
         
         current_byte<<=8-current_bit_count;
         current_byte|=((unsigned char)(len>>current_bit_count));
         fwrite(&current_byte,1,1,compressed_fp);
+        printf("ilki len: %d\n",current_byte);      //sil
         current_byte=(len<<(8-current_bit_count));
         current_byte>>=(8-current_bit_count);
 
@@ -304,7 +297,7 @@ int main(){
     
     
     fread(&x,1,1,original_fp);
-    for(int i=0;i<bits;){
+    for(long long int i=0;i<bits;){
         str_pointer=&str_arr[x][0];
         while(*str_pointer){
             switch(*str_pointer){
