@@ -254,7 +254,7 @@ int main(){
         // instead it represents 8*number_of_bytes we are gonna use on our compressed file
     }
 
-    fwrite(&bits_in_last_byte,1,1,compressed_fp);
+    write_from_uChar(bits_in_last_byte,&current_byte,&current_bit_count,compressed_fp);
     total_bits+=8;
     /* Above loop of the code is doing 2 in this order
     1- It determines number of bits that we are gonna write to the compressed file
@@ -303,6 +303,7 @@ int main(){
     }
     //- Above code writes bytes that are translated from original file to the compressed file.
     if(bits_in_last_byte){
+        current_byte<<=8-bits_in_last_byte;
         fwrite(&current_byte,1,1,compressed_fp);
     }
     fclose(compressed_fp);
