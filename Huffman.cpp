@@ -11,15 +11,14 @@ void write_from_uChar(unsigned char,unsigned char*,int*,FILE*);
 
 /*
 COMPRESSED FILE WILL BE LIKE THIS
-
-first (one byte)        ->  letter_count
-second (one byte)       ->  password_length
-third (bytes)           ->  password (if password exists)
-fourth (bit groups)
-    4.1 (8 bits)        ->  current character
-    4.2 (8 bits)        ->  length of the transformation
-    4.3 (bits)          ->  transformation code of that character
-fifth (8 bits)          ->  bits_in last byte
+first (8 bytes)         ->  size of the original file
+second (one byte)       ->  letter_count
+third (one byte)        ->  password_length
+fourth (bytes)          ->  password (if password exists)
+fifth (bit groups)
+    5.1 (8 bits)        ->  current character
+    5.2 (8 bits)        ->  length of the transformation
+    5.3 (bits)          ->  transformation code of that character
 sixth (a lot of bits)   ->  transformed version of the original file
 */
 
@@ -165,6 +164,23 @@ int main(){
 
 
     compressed_fp=fopen(&scompressed[0],"wb");
+
+    //----------------------------------------
+    {
+        long int temp_size=size;
+        unsigned char temp;
+        for(int i=0;i<8;i++){
+            temp=temp_size%256;
+            fwrite(&temp,1,1,compressed_fp);
+            temp_size/=256;
+        }
+        total_bits+=64;
+    }
+    //This code block is writing byte count of the original file to compressed file's first 8 bytes
+        //It is done like this to make sure that it can work on little, big or middle-endian systems
+    //----------------------------------------
+
+
     fwrite(&letter_count,1,1,compressed_fp);
     total_bits+=8;
     // The program writes the number of different bytes
@@ -254,8 +270,6 @@ int main(){
         // instead it represents 8*number_of_bytes we are gonna use on our compressed file
     }
 
-    write_from_uChar(bits_in_last_byte,&current_byte,&current_bit_count,compressed_fp);
-    total_bits+=8;
     /* Above loop of the code is doing 2 in this order
     1- It determines number of bits that we are gonna write to the compressed file
         (this number only represents number of bytes thats going to be translated it doesn't include translation script

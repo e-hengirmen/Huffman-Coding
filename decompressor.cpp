@@ -2,35 +2,56 @@
 #include <cstdio>
 #include <string>
 #include <cstring>
+#include <cstdlib>
 using namespace std;
+
+struct translation{
+    translation *zero=NULL,*one=NULL;
+    unsigned char character;
+};
 
 void str_without_compress(char*);
 unsigned char process_n_bits_NUMBER(unsigned char*,unsigned char,int*,FILE*);
-void process_n_bits_TO_STRING(unsigned char*,unsigned char,int*,FILE*,string*);
+void process_n_bits_TO_STRING(unsigned char*,unsigned char,int*,FILE*,string*,translation*,unsigned char);
 
 
+//delete this function later----------------------------------
+void print_tree(translation* node,int n){       //delete later
+    for(int i=0;i<n;i++)cout<<" ";
+    if(node->zero){
+        cout<<0<<endl;
+        print_tree(node->zero,n+1);
+    }
+    for(int i=0;i<n;i++)cout<<" ";
+    if(node->one){
+        cout<<1<<endl;
+        print_tree(node->one,n+1);
+    }
+    if(!node->one&&!node->zero){
+        cout<<"character= "<<node->character<<endl;
+    }
+}
+//-----------------------------------------------------------
 
 
-/*
-first (one byte)        ->  letter_count
-second (one byte)       ->  password_length
-third (bytes)           ->  password
-fourth (bit groups)
-    4.1 (8 bits)        ->  current character
-    4.2 (8 bits)        ->  length of the transformation
-    4.3 (bits)          ->  transformation code of that character
+/*          CONTENT TABLE IN ORDER
 
-fifth (8 bits)          ->  bits_in_last_byte
-sixth (a lot of bits)   ->  transformed version of the original file
+.first (8 bytes)         ->  size of the original file
+.second (one byte)       ->  letter_count
+.third (one byte)        ->  password_length
+.fourth (bytes)          ->  password (if password exists)
+.fifth (bit groups)
+    5.1 (8 bits)        ->  current character
+    5.2 (8 bits)        ->  length of the transformation
+    5.3 (bits)          ->  transformation code of that character
+.sixth (a lot of bits)   ->  transformed version of the original file
 */
 
 
 
-struct translation{
-    ersel *zero=NULL,*one=NULL;
-    int number;
-    unsigned char character;
-};
+
+
+
 
 int main(){
     int letter_count,password_length;
@@ -43,12 +64,36 @@ int main(){
         cout<<file<<" does not exist"<<endl;
         return 0;
     }
+
+
+
+    //---------reads .first-----------
+    long int size=0;
+    {
+        long int multiplier=1;
+        unsigned char temp;
+        for(int i=0;i<8;i++){
+            fread(&temp,1,1,fp_compressed);
+            size+=temp*multiplier;
+            multiplier*=256;
+        }
+    }
+        //Size was written to the compressed file from least significiant byte 
+        //to the most significiant byte to make sure system's endianness does
+        //not affect the process and that is why we are getting size information like this
+    //-------------------------------
+
+
+
     str_without_compress(file);
     strcpy(newfile+4,file);
+    //---------reads .second-----------
     fread(&letter_count,1,1,fp_compressed);
-    
+    //-------------------------------
 
 
+
+    //------------reads .third and .fourth--------------------
     fread(&password_length,1,1,fp_compressed);
     if(password_length){
         char real_password[password_length+1],password_input[257];
@@ -71,36 +116,58 @@ int main(){
         }
         cout<<"Correct Password"<<endl;
     }
-    //above code block checks the password
+        //above code block checks the password
+    //----------------------------------------------------
 
 
 
-
-
-
+    //----------------reads .fifth----------------------
+        //and stores transformation info for later use
     string transformation[256];
     unsigned char current_byte=0,len,current_character;
     int current_bit_count=0;
-    unsigned char control_bit[9]={128,1,2,4,8,16,32,64,128};
+    translation *root=(translation*)malloc(sizeof(translation));;
 
     for(int i=0;i<letter_count;i++){
         current_character=process_n_bits_NUMBER(&current_byte,8,&current_bit_count,fp_compressed);
         len=process_n_bits_NUMBER(&current_byte,8,&current_bit_count,fp_compressed);
-        process_n_bits_TO_STRING(&current_byte,len,&current_bit_count,fp_compressed,&transformation[current_character]);
+        process_n_bits_TO_STRING(&current_byte,len,&current_bit_count,fp_compressed,&transformation[current_character],root,current_character);
     }
+    //---------------------------------------------------
+
+
+
+
+
 
     ///*----------delete later-----------
-    //        writes transformation code
+        //    writes transformation code
     for(int i=0;i<256;i++){
         if(transformation[i]!=""){
             cout<<transformation[i]<<" "<<i<<endl;
         }
     }
+    print_tree(root,0);     //delete later
 
     //-----------------------------------*/
+
+
+    
+    
+    fp_new=fopen(newfile,"wb");
+    for(long long i=0;i<size;i++){
+    }
+
+
+
+
+
+
+
+
 }
 
-void process_n_bits_TO_STRING(unsigned char *current_byte,unsigned char n,int *current_bit_count,FILE *fp_read,string *str){
+void process_n_bits_TO_STRING(unsigned char *current_byte,unsigned char n,int *current_bit_count,FILE *fp_read,string *str,translation *node,unsigned char uChar){
     unsigned char check=0b10000000;
     for(int i=0;i<n;i++){
         if(*current_bit_count==0){
@@ -109,12 +176,19 @@ void process_n_bits_TO_STRING(unsigned char *current_byte,unsigned char n,int *c
         }
 
         switch((*current_byte)&check){
-            case 0:*str+='0';break;
-            case 128:*str+='1';break;
+            case 0:*str+='0';
+            if(!(node->zero))node->zero=(translation*)malloc(sizeof(translation));
+            node=node->zero;
+            break;
+            case 128:*str+='1';
+            if(!(node->one))node->one=(translation*)malloc(sizeof(translation));
+            node=node->one;
+            break;
         }
         (*current_byte)<<=1;
         (*current_bit_count)--;
     }
+    node->character=uChar;
 }
 
 unsigned char process_n_bits_NUMBER(unsigned char *current_byte,unsigned char n,int *current_bit_count,FILE *fp_read){
