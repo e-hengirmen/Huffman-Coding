@@ -45,7 +45,7 @@ bool erselcomparec(ersel a,ersel b){
 
 int main(){
     int number[256];
-    long intbits=0,total_bits=0;
+    long long int bits=0,total_bits=0;
     int letter_count=0;
     for(int *i=number;i<number+256;i++){                       
         *i=0;
@@ -62,7 +62,7 @@ int main(){
     scompressed=s+".compressed";
 
     fseek(original_fp,0,SEEK_END);
-    long intsize=ftell(original_fp);
+    long long int size=ftell(original_fp);
     cout<<"The size of the original file is: "<<size<<" bytes"<<endl;
     rewind(original_fp);
 
@@ -70,7 +70,7 @@ int main(){
 
     register unsigned char x;
     fread(&x,1,1,original_fp);
-    for(long inti=0;i<size;i++){
+    for(long long int i=0;i<size;i++){
         number[x]++;
         fread(&x,1,1,original_fp);
     }
@@ -281,7 +281,7 @@ int main(){
     
     
     fread(&x,1,1,original_fp);
-    for(long inti=0;i<bits;){
+    for(long long int i=0;i<bits;){
         str_pointer=&str_arr[x][0];
         while(*str_pointer){
             if(current_bit_count==8){
