@@ -12,7 +12,9 @@ struct translation{
 
 void str_without_compress(char*);
 unsigned char process_n_bits_NUMBER(unsigned char*,unsigned char,int*,FILE*);
-void process_n_bits_TO_STRING(unsigned char*,unsigned char,int*,FILE*,string*,translation*,unsigned char);
+void process_n_bits_TO_STRING(unsigned char*,unsigned char,int*,FILE*,translation*,unsigned char);
+void burn_tree(translation*);
+
 
 
 //delete this function later----------------------------------
@@ -28,7 +30,7 @@ void print_tree(translation* node,int n){       //delete later
         print_tree(node->one,n+1);
     }
     if(!node->one&&!node->zero){
-        cout<<"character= "<<node->character<<endl;
+        cout<<"character="<<(int)node->character<<endl;
     }
 }
 //-----------------------------------------------------------
@@ -116,58 +118,68 @@ int main(){
         }
         cout<<"Correct Password"<<endl;
     }
-        //above code block checks the password
+        //this code block reads and checks the password
     //----------------------------------------------------
 
 
 
     //----------------reads .fifth----------------------
         //and stores transformation info for later use
-    string transformation[256];
     unsigned char current_byte=0,len,current_character;
     int current_bit_count=0;
-    translation *root=(translation*)malloc(sizeof(translation));;
+    translation *root=(translation*)malloc(sizeof(translation));
 
     for(int i=0;i<letter_count;i++){
         current_character=process_n_bits_NUMBER(&current_byte,8,&current_bit_count,fp_compressed);
         len=process_n_bits_NUMBER(&current_byte,8,&current_bit_count,fp_compressed);
-        process_n_bits_TO_STRING(&current_byte,len,&current_bit_count,fp_compressed,&transformation[current_character],root,current_character);
+        process_n_bits_TO_STRING(&current_byte,len,&current_bit_count,fp_compressed,root,current_character);
     }
-    //---------------------------------------------------
+    //--------------------------------------------------
 
 
 
-
-
-
-    ///*----------delete later-----------
-        //    writes transformation code
-    for(int i=0;i<256;i++){
-        if(transformation[i]!=""){
-            cout<<transformation[i]<<" "<<i<<endl;
-        }
-    }
     print_tree(root,0);     //delete later
 
-    //-----------------------------------*/
-
 
     
-    
+    //----------------reads .sixth----------------------
     fp_new=fopen(newfile,"wb");
-    for(long long i=0;i<size;i++){
+    translation *node;
+    {
+        unsigned char check=0b10000000;
+        for(long int i=0;i<size;i++){
+            node=root;
+            while(node->zero||node->one){
+                if(current_bit_count==0){
+                    fread(&current_byte,1,1,fp_compressed);
+                    current_bit_count=8;
+                }
+                current_byte<<=1;           //
+                if(current_byte&check){
+                    node=node->one;
+                }
+                else{
+                    node=node->zero;
+                }
+                current_byte<<=1;           //
+                current_bit_count--;
+            }
+            fwrite(&(node->character),1,1,fp_new);
+        }
     }
+    //--------------------------------------------------
 
-
-
-
-
-
-
-
+    burn_tree(root);
+    cout<<"Decompression is complete"<<endl;
 }
 
-void process_n_bits_TO_STRING(unsigned char *current_byte,unsigned char n,int *current_bit_count,FILE *fp_read,string *str,translation *node,unsigned char uChar){
+void burn_tree(translation *node){
+    if(node->zero)burn_tree(node->zero);
+    if(node->one)burn_tree(node->one);
+    free(node);
+}
+
+void process_n_bits_TO_STRING(unsigned char *current_byte,unsigned char n,int *current_bit_count,FILE *fp_read,translation *node,unsigned char uChar){
     unsigned char check=0b10000000;
     for(int i=0;i<n;i++){
         if(*current_bit_count==0){
@@ -176,11 +188,11 @@ void process_n_bits_TO_STRING(unsigned char *current_byte,unsigned char n,int *c
         }
 
         switch((*current_byte)&check){
-            case 0:*str+='0';
+            case 0:
             if(!(node->zero))node->zero=(translation*)malloc(sizeof(translation));
             node=node->zero;
             break;
-            case 128:*str+='1';
+            case 128:
             if(!(node->one))node->one=(translation*)malloc(sizeof(translation));
             node=node->one;
             break;
