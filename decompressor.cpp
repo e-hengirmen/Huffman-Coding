@@ -72,6 +72,7 @@ int main(){
     strcpy(newfile+4,file);
     //---------reads .second-----------
     fread(&letter_count,1,1,fp_compressed);
+    if(letter_count==0)letter_count=256;
     //-------------------------------
 
 
