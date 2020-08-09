@@ -17,25 +17,6 @@ void burn_tree(translation*);
 
 
 
-//delete this function later----------------------------------
-void print_tree(translation* node,int n){       //delete later
-    for(int i=0;i<n;i++)cout<<" ";
-    if(node->zero){
-        cout<<0<<endl;
-        print_tree(node->zero,n+1);
-    }
-    for(int i=0;i<n;i++)cout<<" ";
-    if(node->one){
-        cout<<1<<endl;
-        print_tree(node->one,n+1);
-    }
-    if(!node->one&&!node->zero){
-        cout<<"character="<<(int)node->character<<endl;
-    }
-}
-//-----------------------------------------------------------
-
-
 /*          CONTENT TABLE IN ORDER
 
 .first (8 bytes)         ->  size of the original file
@@ -138,13 +119,11 @@ int main(){
 
 
 
-    print_tree(root,0);     //delete later
-
-
-    
     //----------------reads .sixth----------------------
+        //then writes it to new file
     fp_new=fopen(newfile,"wb");
     translation *node;
+
     {
         unsigned char check=0b10000000;
         for(long int i=0;i<size;i++){
@@ -154,7 +133,6 @@ int main(){
                     fread(&current_byte,1,1,fp_compressed);
                     current_bit_count=8;
                 }
-                current_byte<<=1;           //
                 if(current_byte&check){
                     node=node->one;
                 }
