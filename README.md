@@ -10,11 +10,11 @@ A C++ compression program based on Huffman's lossless compression algorithm and 
     ./Huffman.sh
 ```
 
-1. After running the script you can use archive command below to compress the file you want:
+2. After running the script you can use archive command below to compress the file you want:
 ```
     ./archive {filename}
 ```
-1. And to decompress the compressed file use the extract command below:
+3. And to decompress the compressed file use the extract command below:
 ```
     ./extract {filename}
 ```
