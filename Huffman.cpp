@@ -42,27 +42,29 @@ bool erselcomparec(ersel a,ersel b){
 
 
 
-int main(){
+int main(int argc,char *argv[]){
     int number[256];
     long int bits=0,total_bits=0;
     int letter_count=0;
+    if(argc==1){
+        cout<<"Missing file name"<<endl<<"try './archive {file name}'"<<endl;
+        return 0;
+    }
     for(int *i=number;i<number+256;i++){                       
         *i=0;
     }
     
-    cout<<"Enter the name of the file you want to compress"<<endl;
-    string s,scompressed;
-	cin>>s;
-    register FILE *original_fp=fopen(&s[0],"rb"),*compressed_fp;
+    string scompressed;
+    register FILE *original_fp=fopen(argv[1],"rb"),*compressed_fp;
     if(NULL==original_fp){
-        cout<<s<<" file does not exist"<<endl;
+        cout<<argv[1]<<" file does not exist"<<endl;
         return 0;
     }
-    scompressed=s+".compressed";
+    scompressed=argv[1];
+    scompressed+=".compressed";
 
     fseek(original_fp,0,SEEK_END);
     long int size=ftell(original_fp);
-    cout<<"The size of the original file is: "<<size<<" bytes"<<endl;
     rewind(original_fp);
 
 
@@ -275,8 +277,9 @@ int main(){
         (this number only represents number of bytes thats going to be translated it doesn't include translation script
     2-It writes the translation script into [name of the original].compressed file and the str_arr array */
 
-    cout<<"The size of the compressed file will be: "<<total_bits/8<<" bytes"<<endl;
-    cout<<"Compressed file's size will be %"<<100*((float)total_bits/8/size)<<" of the original file"<<endl;
+    cout<<"The size of the ORIGINAL file is: "<<size<<" bytes"<<endl;
+    cout<<"The size of the COMPRESSED file will be: "<<total_bits/8<<" bytes"<<endl;
+    cout<<"Compressed file's size will be [%"<<100*((float)total_bits/8/size)<<"] of the original file"<<endl;
     if(total_bits/8>size){
         cout<<endl<<"COMPRESSED FILE'S SIZE WILL BE HIGHER THAN THE ORIGINAL"<<endl<<endl;
     }

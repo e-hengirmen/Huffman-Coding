@@ -5,6 +5,8 @@
 #include <cstdlib>
 using namespace std;
 
+unsigned char check=0b10000000;
+
 struct translation{
     translation *zero=NULL,*one=NULL;
     unsigned char character;
@@ -36,15 +38,17 @@ void burn_tree(translation*);
 
 
 
-int main(){
+int main(int argc,char *argv[]){
     int letter_count,password_length;
     register FILE *fp_compressed,*fp_new;
-    char file[100],newfile[104]="New-";
-    cout<<"Enter the name of the compressed file"<<endl;
-    cin>>file;
-    fp_compressed=fopen(file,"rb");
+    char newfile[260]="New-";
+    if(argc==1){
+        cout<<"Missing file name"<<endl<<"try './extract {file name}'"<<endl;
+        return 0;
+    }
+    fp_compressed=fopen(argv[1],"rb");
     if(!fp_compressed){
-        cout<<file<<" does not exist"<<endl;
+        cout<<argv[1]<<" does not exist"<<endl;
         return 0;
     }
 
@@ -62,14 +66,14 @@ int main(){
         }
     }
         //Size was written to the compressed file from least significiant byte 
-        //to the most significiant byte to make sure system's endianness does
-        //not affect the process and that is why we are getting size information like this
+        //to the most significiant byte to make sure system's endianness
+        //does not affect the process and that is why we are getting size information like this
     //-------------------------------
 
 
 
-    str_without_compress(file);
-    strcpy(newfile+4,file);
+    str_without_compress(argv[1]);
+    strcpy(newfile+4,argv[1]);
     //---------reads .second-----------
     fread(&letter_count,1,1,fp_compressed);
     if(letter_count==0)letter_count=256;
@@ -125,26 +129,23 @@ int main(){
     fp_new=fopen(newfile,"wb");
     translation *node;
 
-    {
-        unsigned char check=0b10000000;
-        for(long int i=0;i<size;i++){
-            node=root;
-            while(node->zero||node->one){
-                if(current_bit_count==0){
-                    fread(&current_byte,1,1,fp_compressed);
-                    current_bit_count=8;
-                }
-                if(current_byte&check){
-                    node=node->one;
-                }
-                else{
-                    node=node->zero;
-                }
-                current_byte<<=1;           //
-                current_bit_count--;
+    for(long int i=0;i<size;i++){
+        node=root;
+        while(node->zero||node->one){
+            if(current_bit_count==0){
+                fread(&current_byte,1,1,fp_compressed);
+                current_bit_count=8;
             }
-            fwrite(&(node->character),1,1,fp_new);
+            if(current_byte&check){
+                node=node->one;
+            }
+            else{
+                node=node->zero;
+            }
+            current_byte<<=1;           //
+            current_bit_count--;
         }
+        fwrite(&(node->character),1,1,fp_new);
     }
     //--------------------------------------------------
 
@@ -159,7 +160,6 @@ void burn_tree(translation *node){
 }
 
 void process_n_bits_TO_STRING(unsigned char *current_byte,unsigned char n,int *current_bit_count,FILE *fp_read,translation *node,unsigned char uChar){
-    unsigned char check=0b10000000;
     for(int i=0;i<n;i++){
         if(*current_bit_count==0){
             fread(current_byte,1,1,fp_read);
@@ -183,7 +183,7 @@ void process_n_bits_TO_STRING(unsigned char *current_byte,unsigned char n,int *c
 }
 
 unsigned char process_n_bits_NUMBER(unsigned char *current_byte,unsigned char n,int *current_bit_count,FILE *fp_read){
-    unsigned char check=0b10000000,val=0;
+    unsigned char val=0;
     if(n>8){
         fclose(fp_read);
         cout<<"Coding Error"<<endl;
