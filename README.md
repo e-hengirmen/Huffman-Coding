@@ -5,17 +5,22 @@ A C++ compression program based on Huffman's lossless compression algorithm and 
 
 ## How do I use it?
 
-### Run shell script with:
+1. Run below script with using favourate shell:
 
     ./Huffman.sh
 
-After running the script you can use archive command to compress the file you want like this:
+1. After running the script you can use archive command below to compress the file you want:
 
     ./archive {filename}
 
-And to decompress the compressed file use the extract command like below:
+1. And to decompress the compressed file use the extract command below:
 
     ./extract {filename}
+
+* If you want to check size of a file use the commands below
+
+    g++ size_checker.cpp -o check_size
+    ./check_size {filename}
 
 ## Shortcomings
 * Huffman.cpp does not compress multiple files
@@ -27,5 +32,5 @@ And to decompress the compressed file use the extract command like below:
 * Improve documentation
 * Make it so that name of the file is added to compressed file and translated from it by decompress
 * ~~Add a make file or shell script~~(Done)(added script)
-* Huffman.cpp should compress multiple Files
+* Huffman.cpp should compress multiple files
 * Huffman.cpp should compress folders
