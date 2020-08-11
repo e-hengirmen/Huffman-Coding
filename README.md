@@ -5,7 +5,7 @@ A C++ compression program based on Huffman's lossless compression algorithm and 
 
 ## How do I use it?
 
-1. Run below script using favourate shell:
+1. Run below script using your favourate shell:
 ```
     chmod u+x Huffman.sh
     ./Huffman.sh
