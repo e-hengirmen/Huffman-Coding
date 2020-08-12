@@ -1,7 +1,7 @@
 # Huffman_Coding
 A C++ compression program based on Huffman's lossless compression algorithm and its decompressor
 
-**Compressor and Decompressor have been finished but they haven't been tested throughly they are only tested in linux based operating systems. Use at your own discretion**
+**Compressor and Decompressor have been finished but they are only tested in linux based operating systems. Use at your own discretion**
 
 ## How do I use it?
 
