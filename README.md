@@ -1,7 +1,7 @@
 # Huffman_Coding
 A C++ compression program based on Huffman's lossless compression algorithm and its decompressor
 
-**Compressor and Decompressor have been finished but they are only tested in linux based operating systems. Use at your own discretion**
+**Compression and Decompression codes are ready, but they are only tested in Linux based operating systems. Use it at your discretion.**
 
 ## How do I use it?
 
@@ -11,11 +11,11 @@ A C++ compression program based on Huffman's lossless compression algorithm and 
     ./Huffman.sh
 ```
 
-2. After running the script you can use archive command below to compress the file you want:
+2. After running the script, you can use archive command below to compress the file you want:
 ```
     ./archive {{filename}}
 ```
-3. And to decompress the compressed file use the extract command below:
+3.  And to decompress the compressed file, use the extract command below:
 ```
     ./extract {{filename}}
 ```
@@ -25,14 +25,14 @@ A C++ compression program based on Huffman's lossless compression algorithm and 
     ./check_size {{filename}}
 ```
 ## Shortcomings
-* Huffman.cpp does not compress multiple files
-* Huffman.cpp does not compress folders
+* Compressor.cpp does not compress multiple files
+* Compressor.cpp does not compress folders
 
 ## TODO list
 * ~~Finish decompressor~~(DONE)
 * ~~Add a size checker~~(DONE)
 * Improve documentation
-* Make it so that name of the file is added to compressed file and translated from it by decompress
+* Name of the file should be added to compression code
 * ~~Add a make file or shell script~~(Done)(added script)
 * Huffman.cpp should compress multiple files
 * Huffman.cpp should compress folders
