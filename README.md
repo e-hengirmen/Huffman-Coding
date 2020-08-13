@@ -31,7 +31,7 @@ A C++ compression program based on Huffman's lossless compression algorithm and 
 ## TODO list
 * ~~Finish decompressor~~(DONE)
 * ~~Add a size checker~~(DONE)
-* Improve documentation
+* ~~Improve documentation~~(DONE)
 * Name of the file should be added to compression code
 * ~~Add a make file or shell script~~(Done)(added script)
 * Huffman.cpp should compress multiple files

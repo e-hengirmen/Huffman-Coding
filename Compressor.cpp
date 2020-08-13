@@ -9,8 +9,21 @@ void write_from_uChar(unsigned char,unsigned char*,int*,FILE*);
 
 
 
-/*
-COMPRESSED FILE WILL BE LIKE THIS
+/*          CONTENT TABLE IN ORDER
+---------PART 1-CALCULATING TRANSLATION INFO----------
+Important Note:4 and 5 are the most important parts of this algorithm
+If you dont know how Huffman's algorithm works I really recommend you to check this link before continuing:
+https://en.wikipedia.org/wiki/Huffman_coding#Basic_technique
+
+1-Size information
+2-Byte count by unique byte and unique byte count
+3-creating the base of translation array
+4-Creating the whole tree inside the array by weight distribution
+5-adding strings from top to bottom
+
+---------PART 2-CREATION OF COMPRESSED FILE-----------
+    Original File will be compressed in below order
+
 first (8 bytes)         ->  size of the original file
 second (one byte)       ->  letter_count
 third (one byte)        ->  password_length
@@ -33,12 +46,6 @@ struct ersel{
 bool erselcompare0(ersel a,ersel b){
     return a.number<b.number;
 }
-
-bool erselcomparec(ersel a,ersel b){
-    return a.character<b.character;
-}
-
-
 
 
 
@@ -63,12 +70,18 @@ int main(int argc,char *argv[]){
     scompressed=argv[1];
     scompressed+=".compressed";
 
+
+
+    //--------------------1------------------------
     fseek(original_fp,0,SEEK_END);
     long int size=ftell(original_fp);
     rewind(original_fp);
+        //size information will later be written to compressed file
+    //---------------------------------------------
 
 
 
+    //--------------------2------------------------
     register unsigned char x;
     fread(&x,1,1,original_fp);
     for(long int i=0;i<size;i++){
@@ -76,14 +89,20 @@ int main(int argc,char *argv[]){
         fread(&x,1,1,original_fp);
     }
     rewind(original_fp);
-    //Above code block counts all of the possible unique bytes on the original file and records them
 
 	for(int *i=number;i<number+256;i++){                 
         	if(*i){
 			letter_count++;
 			}
     }
+        //This code block counts number of times that all of the unique bytes is used on the first block
+        //and stores that info in 'number' array
+        //after that it checks the 'number' array and writes the number of unique byte count to 'letter_count' variable
+    //---------------------------------------------
 
+
+
+    //--------------------3------------------------
     ersel array[letter_count*2-1];
     register ersel *e=array;
     for(int *i=number;i<number+256;i++){                         
@@ -95,9 +114,18 @@ int main(int argc,char *argv[]){
                 e++;
             }
     }
+    sort(array,array+letter_count,erselcompare0);
+        //creating the base of translation array(and then sorting them by ascending numbers)
+            //this array of type 'ersel' will not be used after calculating transformed versions of every unique byte
+            //instead its info will be written in a new string array called str_arr 
+    //---------------------------------------------
     
-    sort(array,array+letter_count,erselcompare0);               
+                   
     
+    //-------------------4-------------------------
+        //min1 and min2 represents nodes that has minimum weights
+        //isleaf is the pointer that traverses through leafs and
+        //notleaf is the pointer that traverses through nodes that are not leafs
     ersel *min1=array,*min2=array+1,*current=array+letter_count,*notleaf=array+letter_count,*isleaf=array+2;            
     for(int i=0;i<letter_count-1;i++){                           
         current->number=min1->number+min2->number;
@@ -142,8 +170,13 @@ int main(int argc,char *argv[]){
         }
         
     }
+        // At every cycle, 2 of the least weighted nodes will be chosen to
+        // create a new node that has weight equal to sum of their weights combined.
+            // After we are done with these nodes they will become childrens of created nodes
+            // and they will be passed so that they wont be used in this process again.
+    //---------------------------------------------
     
-
+    //-------------------5-------------------------
     for(e=array+letter_count*2-2;e>array-1;e--){
         if(e->left){
             e->left->bit=e->bit+e->left->bit;
@@ -153,7 +186,12 @@ int main(int argc,char *argv[]){
         }
         
     }
-
+        // In this block we are adding the bytes from root to leafs
+        // and after this is done every leaf will have a transformation string that corresponds to it
+            // Note: It is actually a very neat process. Using 4th and 5th code blocks, we are making sure that
+            // the most used character is using least number of bits.
+                // Specific number of bits we re going to use for that character is determined by weight distribution
+    //---------------------------------------------
 
 
 
@@ -167,7 +205,7 @@ int main(int argc,char *argv[]){
 
     compressed_fp=fopen(&scompressed[0],"wb");
 
-    //----------------------------------------
+    //-------------writes first---------------
     {
         long int temp_size=size;
         unsigned char temp;
@@ -178,19 +216,17 @@ int main(int argc,char *argv[]){
         }
         total_bits+=64;
     }
-    //This code block is writing byte count of the original file to compressed file's first 8 bytes
-        //It is done like this to make sure that it can work on little, big or middle-endian systems
+        //This code block is writing byte count of the original file to compressed file's first 8 bytes
+            //It is done like this to make sure that it can work on little, big or middle-endian systems
     //----------------------------------------
 
-
+    //-----------writes second----------------
     fwrite(&letter_count,1,1,compressed_fp);
     total_bits+=8;
-    // The program writes the number of different bytes
-    // that we re gonna use to decode this compressed file.
-    // This will be useful when we re decompressing this file later on.
+    //----------------------------------------
     
 
-
+    //----writes third and forth---------------
     {
         cout<<"If you want a password write any number other then 0"<<endl
             <<"If you do not, write 0"<<endl;
@@ -225,9 +261,10 @@ int main(int argc,char *argv[]){
             total_bits+=8;
         }
     }
-    //Above code block puts password to compressed file
+        //Above code block puts password to compressed file
+    //----------------------------------------
 
-
+    //------------writes fifth----------------
     char *str_pointer;
     unsigned char current_byte,len,current_character;
     int current_bit_count=0;
@@ -271,11 +308,12 @@ int main(int argc,char *argv[]){
         // from this point on total bits doesnt represent total bits but
         // instead it represents 8*number_of_bytes we are gonna use on our compressed file
     }
-
     /* Above loop of the code is doing 2 in this order
     1- It determines number of bits that we are gonna write to the compressed file
         (this number only represents number of bytes thats going to be translated it doesn't include translation script
     2-It writes the translation script into [name of the original].compressed file and the str_arr array */
+    //----------------------------------------
+
 
     cout<<"The size of the ORIGINAL file is: "<<size<<" bytes"<<endl;
     cout<<"The size of the COMPRESSED file will be: "<<total_bits/8<<" bytes"<<endl;
@@ -296,7 +334,7 @@ int main(int argc,char *argv[]){
     }
 
     
-    
+    //------------writes fifth----------------
     fread(&x,1,1,original_fp);
     for(long int i=0;i<bits;){
         str_pointer=&str_arr[x][0];
@@ -318,11 +356,16 @@ int main(int argc,char *argv[]){
         }
         fread(&x,1,1,original_fp);
     }
-    //- Above code writes bytes that are translated from original file to the compressed file.
+    // Above code writes bytes that are translated from original file to the compressed file.
+    
     if(bits_in_last_byte){
         current_byte<<=8-bits_in_last_byte;
         fwrite(&current_byte,1,1,compressed_fp);
     }
+    //----------------------------------------
+
+
+
     fclose(compressed_fp);
     fclose(original_fp);
 
