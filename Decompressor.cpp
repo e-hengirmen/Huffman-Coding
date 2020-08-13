@@ -13,13 +13,15 @@ struct translation{
 };
 
 void str_without_compress(char*);
-unsigned char process_n_bits_NUMBER(unsigned char*,unsigned char,int*,FILE*);
+unsigned char process_8_bits_NUMBER(unsigned char*,int*,FILE*);
 void process_n_bits_TO_STRING(unsigned char*,unsigned char,int*,FILE*,translation*,unsigned char);
 void burn_tree(translation*);
 
 
 
 /*          CONTENT TABLE IN ORDER
+    compressed file's composition is in order below
+    that is why we re going to translate it part by part
 
 .first (8 bytes)         ->  size of the original file
 .second (one byte)       ->  letter_count
@@ -67,7 +69,7 @@ int main(int argc,char *argv[]){
     }
         //Size was written to the compressed file from least significiant byte 
         //to the most significiant byte to make sure system's endianness
-        //does not affect the process and that is why we are getting size information like this
+        //does not affect the process and that is why we are processing size information like this
     //-------------------------------
 
 
@@ -110,14 +112,14 @@ int main(int argc,char *argv[]){
 
 
     //----------------reads .fifth----------------------
-        //and stores transformation info for later use
+        //and stores transformation info into translation tree for later use
     unsigned char current_byte=0,len,current_character;
     int current_bit_count=0;
     translation *root=(translation*)malloc(sizeof(translation));
 
     for(int i=0;i<letter_count;i++){
-        current_character=process_n_bits_NUMBER(&current_byte,8,&current_bit_count,fp_compressed);
-        len=process_n_bits_NUMBER(&current_byte,8,&current_bit_count,fp_compressed);
+        current_character=process_8_bits_NUMBER(&current_byte,&current_bit_count,fp_compressed);
+        len=process_8_bits_NUMBER(&current_byte,&current_bit_count,fp_compressed);
         process_n_bits_TO_STRING(&current_byte,len,&current_bit_count,fp_compressed,root,current_character);
     }
     //--------------------------------------------------
@@ -125,7 +127,8 @@ int main(int argc,char *argv[]){
 
 
     //----------------reads .sixth----------------------
-        //then writes it to new file
+        //Translates .sixth from info that is stored in translation tree
+        //than writes it to new file
     fp_new=fopen(newfile,"wb");
     translation *node;
 
@@ -142,7 +145,7 @@ int main(int argc,char *argv[]){
             else{
                 node=node->zero;
             }
-            current_byte<<=1;           //
+            current_byte<<=1;           
             current_bit_count--;
         }
         fwrite(&(node->character),1,1,fp_new);
@@ -153,12 +156,15 @@ int main(int argc,char *argv[]){
     cout<<"Decompression is complete"<<endl;
 }
 
-void burn_tree(translation *node){
+void burn_tree(translation *node){          //this function is used for deallocating translation tree
     if(node->zero)burn_tree(node->zero);
     if(node->one)burn_tree(node->one);
     free(node);
 }
 
+//process_n_bits_TO_STRING function reads n successive bits from the compressed file
+//and stores it in a leaf of the translation tree
+//after creating that leaf and sometimes nodes that are binding that leaf to the tree
 void process_n_bits_TO_STRING(unsigned char *current_byte,unsigned char n,int *current_bit_count,FILE *fp_read,translation *node,unsigned char uChar){
     for(int i=0;i<n;i++){
         if(*current_bit_count==0){
@@ -182,14 +188,11 @@ void process_n_bits_TO_STRING(unsigned char *current_byte,unsigned char n,int *c
     node->character=uChar;
 }
 
-unsigned char process_n_bits_NUMBER(unsigned char *current_byte,unsigned char n,int *current_bit_count,FILE *fp_read){
+//process_8_bits_NUMBER reads 8 successive bits from compressed file
+//and returns it in unsigned char form
+unsigned char process_8_bits_NUMBER(unsigned char *current_byte,int *current_bit_count,FILE *fp_read){
     unsigned char val=0;
-    if(n>8){
-        fclose(fp_read);
-        cout<<"Coding Error"<<endl;
-        exit(123);
-    }
-    for(int i=0;i<n;i++){
+    for(int i=0;i<8;i++){
         val<<=1;
         if(*current_bit_count==0){
             fread(current_byte,1,1,fp_read);
