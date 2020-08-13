@@ -14,7 +14,7 @@ struct translation{
 
 void str_without_compress(char*);
 unsigned char process_8_bits_NUMBER(unsigned char*,int*,FILE*);
-void process_n_bits_TO_STRING(unsigned char*,unsigned char,int*,FILE*,translation*,unsigned char);
+void process_n_bits_TO_STRING(unsigned char*,int,int*,FILE*,translation*,unsigned char);
 void burn_tree(translation*);
 
 
@@ -113,13 +113,14 @@ int main(int argc,char *argv[]){
 
     //----------------reads .fifth----------------------
         //and stores transformation info into translation tree for later use
-    unsigned char current_byte=0,len,current_character;
-    int current_bit_count=0;
+    unsigned char current_byte=0,current_character;
+    int current_bit_count=0,len;
     translation *root=(translation*)malloc(sizeof(translation));
 
     for(int i=0;i<letter_count;i++){
         current_character=process_8_bits_NUMBER(&current_byte,&current_bit_count,fp_compressed);
         len=process_8_bits_NUMBER(&current_byte,&current_bit_count,fp_compressed);
+        if(len==0)len=256;
         process_n_bits_TO_STRING(&current_byte,len,&current_bit_count,fp_compressed,root,current_character);
     }
     //--------------------------------------------------
@@ -165,7 +166,7 @@ void burn_tree(translation *node){          //this function is used for dealloca
 //process_n_bits_TO_STRING function reads n successive bits from the compressed file
 //and stores it in a leaf of the translation tree
 //after creating that leaf and sometimes nodes that are binding that leaf to the tree
-void process_n_bits_TO_STRING(unsigned char *current_byte,unsigned char n,int *current_bit_count,FILE *fp_read,translation *node,unsigned char uChar){
+void process_n_bits_TO_STRING(unsigned char *current_byte,int n,int *current_bit_count,FILE *fp_read,translation *node,unsigned char uChar){
     for(int i=0;i<n;i++){
         if(*current_bit_count==0){
             fread(current_byte,1,1,fp_read);
