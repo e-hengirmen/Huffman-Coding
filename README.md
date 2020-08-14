@@ -19,7 +19,7 @@ A C++ compression program based on Huffman's lossless compression algorithm and 
 ```
     ./extract {{filename}}
 ```
-* If you want to check size of a file use the commands below
+* If you want to check size of a file use the command below
 ```
     ./check_size {{filename}}
 ```
