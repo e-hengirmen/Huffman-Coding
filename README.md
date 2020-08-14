@@ -21,7 +21,6 @@ A C++ compression program based on Huffman's lossless compression algorithm and 
 ```
 * If you want to check size of a file use the commands below
 ```
-    g++ size_checker.cpp -o check_size
     ./check_size {{filename}}
 ```
 ## Shortcomings
