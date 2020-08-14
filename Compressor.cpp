@@ -5,7 +5,7 @@
 #include <cstdlib>
 using namespace std;
 
-void write_from_uChar(unsigned char,unsigned char*,int*,FILE*);
+void write_from_uChar(unsigned char,unsigned char*,int,FILE*);
 
 
 
@@ -274,8 +274,8 @@ int main(int argc,char *argv[]){
         len=e->bit.length();
         current_character=e->character;
 
-        write_from_uChar(current_character,&current_byte,&current_bit_count,compressed_fp);
-        write_from_uChar(len,&current_byte,&current_bit_count,compressed_fp);
+        write_from_uChar(current_character,&current_byte,current_bit_count,compressed_fp);
+        write_from_uChar(len,&current_byte,current_bit_count,compressed_fp);
         total_bits+=len+16;
         // above lines will write the byte and the number of bits
         // we re going to need to represent this specific byte's transformated version
@@ -373,18 +373,14 @@ int main(int argc,char *argv[]){
     
 }
 
-void write_from_uChar(unsigned char uChar,unsigned char *current_byte,int *current_bit_count,FILE *fp_write){
-    unsigned char check=0b10000000;
-    
-    for(int i=0;i<8;i++){
-        if(*current_bit_count==8){
-            fwrite(current_byte,1,1,fp_write);
-            *current_bit_count=0;
-        }
 
-        (*current_byte)<<=1;
-        if(uChar&check)(*current_byte)|=1;
-        uChar<<=1;
-        (*current_bit_count)++;
-    }
+
+//below function is used for writing the uChar to fp_write file
+    //It does not write it directly as one byte instead it mixes uChar and currnt byte writes 8 bits of it 
+    //and puts the rest to curent byte for later use
+void write_from_uChar(unsigned char uChar,unsigned char *current_byte,int current_bit_count,FILE *fp_write){
+    (*current_byte)<<=8-current_bit_count;
+    (*current_byte)|=(uChar>>current_bit_count);
+    fwrite(current_byte,1,1,fp_write);
+    *current_byte=uChar;   
 }
