@@ -38,7 +38,7 @@ sixth (a lot of bits)   ->  transformed version of the original file
 
 struct ersel{
     ersel *left,*right;
-    int number;
+    long int number;
     unsigned char character;
     string bit;
 };
@@ -50,14 +50,14 @@ bool erselcompare0(ersel a,ersel b){
 
 
 int main(int argc,char *argv[]){
-    int number[256];
+    long int number[256];
     long int bits=0,total_bits=0;
     int letter_count=0;
     if(argc==1){
         cout<<"Missing file name"<<endl<<"try './archive {file name}'"<<endl;
         return 0;
     }
-    for(int *i=number;i<number+256;i++){                       
+    for(long int *i=number;i<number+256;i++){                       
         *i=0;
     }
     
@@ -90,7 +90,7 @@ int main(int argc,char *argv[]){
     }
     rewind(original_fp);
 
-	for(int *i=number;i<number+256;i++){                 
+	for(long int *i=number;i<number+256;i++){                 
         	if(*i){
 			letter_count++;
 			}
@@ -105,7 +105,7 @@ int main(int argc,char *argv[]){
     //--------------------3------------------------
     ersel array[letter_count*2-1];
     register ersel *e=array;
-    for(int *i=number;i<number+256;i++){                         
+    for(long int *i=number;i<number+256;i++){                         
         	if(*i){
                 e->right=NULL;
                 e->left=NULL;
