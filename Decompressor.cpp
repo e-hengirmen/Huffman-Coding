@@ -13,7 +13,7 @@ struct translation{
 };
 
 void str_without_compress(char*);
-unsigned char process_8_bits_NUMBER(unsigned char*,int*,FILE*);
+unsigned char process_8_bits_NUMBER(unsigned char*,int,FILE*);
 void process_n_bits_TO_STRING(unsigned char*,int,int*,FILE*,translation*,unsigned char);
 void burn_tree(translation*);
 
@@ -118,8 +118,8 @@ int main(int argc,char *argv[]){
     translation *root=(translation*)malloc(sizeof(translation));
 
     for(int i=0;i<letter_count;i++){
-        current_character=process_8_bits_NUMBER(&current_byte,&current_bit_count,fp_compressed);
-        len=process_8_bits_NUMBER(&current_byte,&current_bit_count,fp_compressed);
+        current_character=process_8_bits_NUMBER(&current_byte,current_bit_count,fp_compressed);
+        len=process_8_bits_NUMBER(&current_byte,current_bit_count,fp_compressed);
         if(len==0)len=256;
         process_n_bits_TO_STRING(&current_byte,len,&current_bit_count,fp_compressed,root,current_character);
     }
@@ -191,19 +191,11 @@ void process_n_bits_TO_STRING(unsigned char *current_byte,int n,int *current_bit
 
 //process_8_bits_NUMBER reads 8 successive bits from compressed file
 //and returns it in unsigned char form
-unsigned char process_8_bits_NUMBER(unsigned char *current_byte,int *current_bit_count,FILE *fp_read){
-    unsigned char val=0;
-    for(int i=0;i<8;i++){
-        val<<=1;
-        if(*current_bit_count==0){
-            fread(current_byte,1,1,fp_read);
-            *current_bit_count=8;
-        }
-
-        if((*current_byte)&check)val|=1;
-        (*current_byte)<<=1;
-        (*current_bit_count)--;
-    }
+unsigned char process_8_bits_NUMBER(unsigned char *current_byte,int current_bit_count,FILE *fp_read){
+    unsigned char val,temp_byte;
+    fread(&temp_byte,1,1,fp_read);
+    val=(*current_byte)|(temp_byte>>current_bit_count);
+    *current_byte=temp_byte<<8-current_bit_count;
     return val;
 }
 
