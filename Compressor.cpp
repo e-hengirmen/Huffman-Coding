@@ -12,12 +12,12 @@ void write_from_uChar(unsigned char,unsigned char*,int,FILE*);
 /*          CONTENT TABLE IN ORDER
 ---------PART 1-CALCULATING TRANSLATION INFO----------
 Important Note:4 and 5 are the most important parts of this algorithm
-If you dont know how Huffman's algorithm works I really recommend you to check this link before continuing:
+If you dont know how Huffman's algorithm works I really recommend you to check this link before you continue:
 https://en.wikipedia.org/wiki/Huffman_coding#Basic_technique
 
 1-Size information
 2-Byte count by unique byte and unique byte count
-3-creating the base of translation array
+3-Creating the base of translation array
 4-Creating the whole tree inside the array by weight distribution
 5-adding strings from top to bottom
 
@@ -358,8 +358,11 @@ int main(int argc,char *argv[]){
     }
     // Above code writes bytes that are translated from original file to the compressed file.
     
-    if(bits_in_last_byte){
-        current_byte<<=8-bits_in_last_byte;
+    if(current_bit_count==8){
+        fwrite(&current_byte,1,1,compressed_fp);
+    }
+    else{
+        current_byte<<=8-current_bit_count;
         fwrite(&current_byte,1,1,compressed_fp);
     }
     //----------------------------------------
