@@ -76,7 +76,7 @@ int main(int argc,char *argv[]){
     fseek(original_fp,0,SEEK_END);
     long int size=ftell(original_fp);
     rewind(original_fp);
-        //size information will later be written to compressed file
+        // size information will later be written to compressed file
     //---------------------------------------------
 
 
@@ -95,9 +95,9 @@ int main(int argc,char *argv[]){
 			letter_count++;
 			}
     }
-        //This code block counts number of times that all of the unique bytes is used on the first block
-        //and stores that info in 'number' array
-        //after that it checks the 'number' array and writes the number of unique byte count to 'letter_count' variable
+        // This code block counts number of times that all of the unique bytes is used on the first block
+        // and stores that info in 'number' array
+        // after that it checks the 'number' array and writes the number of unique byte count to 'letter_count' variable
     //---------------------------------------------
 
 
@@ -115,17 +115,17 @@ int main(int argc,char *argv[]){
             }
     }
     sort(array,array+letter_count,erselcompare0);
-        //creating the base of translation array(and then sorting them by ascending numbers)
-            //this array of type 'ersel' will not be used after calculating transformed versions of every unique byte
-            //instead its info will be written in a new string array called str_arr 
+        // creating the base of translation array(and then sorting them by ascending numbers)
+        //     this array of type 'ersel' will not be used after calculating transformed versions of every unique byte
+        //     instead its info will be written in a new string array called str_arr 
     //---------------------------------------------
     
                    
     
     //-------------------4-------------------------
-        //min1 and min2 represents nodes that has minimum weights
-        //isleaf is the pointer that traverses through leafs and
-        //notleaf is the pointer that traverses through nodes that are not leafs
+        // min1 and min2 represents nodes that has minimum weights
+        // isleaf is the pointer that traverses through leafs and
+        // notleaf is the pointer that traverses through nodes that are not leafs
     ersel *min1=array,*min2=array+1,*current=array+letter_count,*notleaf=array+letter_count,*isleaf=array+2;            
     for(int i=0;i<letter_count-1;i++){                           
         current->number=min1->number+min2->number;

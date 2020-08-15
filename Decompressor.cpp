@@ -67,9 +67,9 @@ int main(int argc,char *argv[]){
             multiplier*=256;
         }
     }
-        //Size was written to the compressed file from least significiant byte 
-        //to the most significiant byte to make sure system's endianness
-        //does not affect the process and that is why we are processing size information like this
+        // Size was written to the compressed file from least significiant byte 
+        // to the most significiant byte to make sure system's endianness
+        // does not affect the process and that is why we are processing size information like this
     //-------------------------------
 
 
@@ -106,13 +106,13 @@ int main(int argc,char *argv[]){
         }
         cout<<"Correct Password"<<endl;
     }
-        //this code block reads and checks the password
+        // this code block reads and checks the password
     //----------------------------------------------------
 
 
 
     //----------------reads .fifth----------------------
-        //and stores transformation info into translation tree for later use
+        // and stores transformation info into translation tree for later use
     unsigned char current_byte=0,current_character;
     int current_bit_count=0,len;
     translation *root=(translation*)malloc(sizeof(translation));
@@ -128,8 +128,8 @@ int main(int argc,char *argv[]){
 
 
     //----------------reads .sixth----------------------
-        //Translates .sixth from info that is stored in translation tree
-        //than writes it to new file
+        // Translates .sixth from info that is stored in translation tree
+        // than writes it to new file
     fp_new=fopen(newfile,"wb");
     translation *node;
 
@@ -157,15 +157,15 @@ int main(int argc,char *argv[]){
     cout<<"Decompression is complete"<<endl;
 }
 
-void burn_tree(translation *node){          //this function is used for deallocating translation tree
+void burn_tree(translation *node){          // this function is used for deallocating translation tree
     if(node->zero)burn_tree(node->zero);
     if(node->one)burn_tree(node->one);
     free(node);
 }
 
-//process_n_bits_TO_STRING function reads n successive bits from the compressed file
-//and stores it in a leaf of the translation tree
-//after creating that leaf and sometimes nodes that are binding that leaf to the tree
+// process_n_bits_TO_STRING function reads n successive bits from the compressed file
+// and stores it in a leaf of the translation tree
+// after creating that leaf and sometimes nodes that are binding that leaf to the tree
 void process_n_bits_TO_STRING(unsigned char *current_byte,int n,int *current_bit_count,FILE *fp_read,translation *node,unsigned char uChar){
     for(int i=0;i<n;i++){
         if(*current_bit_count==0){
@@ -189,8 +189,8 @@ void process_n_bits_TO_STRING(unsigned char *current_byte,int n,int *current_bit
     node->character=uChar;
 }
 
-//process_8_bits_NUMBER reads 8 successive bits from compressed file
-//and returns it in unsigned char form
+// process_8_bits_NUMBER reads 8 successive bits from compressed file
+// and returns it in unsigned char form
 unsigned char process_8_bits_NUMBER(unsigned char *current_byte,int current_bit_count,FILE *fp_read){
     unsigned char val,temp_byte;
     fread(&temp_byte,1,1,fp_read);
