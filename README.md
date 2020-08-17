@@ -7,7 +7,7 @@ The Compressor is a 2-pass program. What I mean by this is that the Compressor r
 
 In the first pass, the program counts usage frequency of every unique byte and creates a weighted translation tree for every used unique byte inversely proportional to its usage frequency and then writes this transformation info to the compressed file for decompression purposes
 
-In the second pass, the program translates the file according to the translation tree and writes it to the compressed file
+In the second pass, the program decodes the file according to the translation tree and writes it to the newly created compressed file
 
 ### Decompressor:
 The Decompressor is a 1-pass program:
@@ -39,9 +39,6 @@ The Decompressor first reads translation info and creates a binary tree from it.
 
 ## TODO list
 * ~~Finish decompressor~~(DONE)
-* ~~Add a size checker~~(DONE)
 * ~~Improve documentation~~(DONE)
-* Name of the file should be added to compression code
-* ~~Add a make file or shell script~~(Done)(added script)
 * Huffman.cpp should compress multiple files
 * Huffman.cpp should compress folders
