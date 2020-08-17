@@ -1,5 +1,5 @@
 # Huffman_Coding
-My C++ compression program based on Huffman's lossless compression algorithm and its decompressor.
+My C++ compression program based on Huffman's lossless compression algorithm and its decompressor
 
 **Compression and Decompression codes are ready, but they are only tested in Linux based operating systems. Use it at your discretion.**
 
