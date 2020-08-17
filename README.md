@@ -2,13 +2,16 @@
 My C++ compression program based on Huffman's lossless compression algorithm and its decompressor
 
 ## How does it work?
-### Compressor is a 2 pass program
-In the first pass, the program counts usage frequency of every unique byte and creates a weighted translation tree for every used unique byte inversely proportional to its usage frequency and writes transformation info to the compressed file for decompression purposes
+### Compressor:
+The Compressor is a 2-pass program. What I mean by this is that the Compressor reads the original file 2 times.
+
+In the first pass, the program counts usage frequency of every unique byte and creates a weighted translation tree for every used unique byte inversely proportional to its usage frequency and then writes this transformation info to the compressed file for decompression purposes
 
 In the second pass, the program translates the file according to the translation tree and writes it to the compressed file
 
-### Decompressor is a 1 pass program
-The decompressor first reads translation info and creates a binary tree from it. After this process is done, it uses this binary translation tree to translate the rest of the file
+### Decompressor:
+The Decompressor is a 1 pass program:
+The Decompressor first reads translation info and creates a binary tree from it. After this process is done, it uses this binary translation tree to translate the rest of the file
 
 ## How does one use it?
 
@@ -26,7 +29,7 @@ The decompressor first reads translation info and creates a binary tree from it.
 ```
     ./extract {{filename}}
 ```
-* If you want to check size of a file use the command below
+* If you want to check the size of a file use the command below
 ```
     ./check_size {{filename}}
 ```
