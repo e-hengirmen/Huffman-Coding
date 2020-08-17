@@ -1,5 +1,5 @@
 # Huffman_Coding
-My C++ compression program based on Huffman's lossless compression algorithm and its decompressor
+Self-made C++ compression program based on Huffman's lossless compression algorithm and its decompressor
 
 ## How does it work?
 ### Compressor:
