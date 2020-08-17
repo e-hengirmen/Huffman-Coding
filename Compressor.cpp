@@ -82,11 +82,12 @@ int main(int argc,char *argv[]){
 
 
     //--------------------2------------------------
-    register unsigned char x;
-    fread(&x,1,1,original_fp);
+    register unsigned char x,*x_p;
+    x_p=&x;
+    fread(x_p,1,1,original_fp);
     for(long int i=0;i<size;i++){
         number[x]++;
-        fread(&x,1,1,original_fp);
+        fread(x_p,1,1,original_fp);
     }
     rewind(original_fp);
 
@@ -335,7 +336,7 @@ int main(int argc,char *argv[]){
 
     
     //------------writes sixth----------------
-    fread(&x,1,1,original_fp);
+    fread(x_p,1,1,original_fp);
     for(long int i=0;i<bits;){
         str_pointer=&str_arr[x][0];
         while(*str_pointer){
@@ -354,7 +355,7 @@ int main(int argc,char *argv[]){
             }
             str_pointer++;
         }
-        fread(&x,1,1,original_fp);
+        fread(x_p,1,1,original_fp);
     }
     // Above code writes bytes that are translated from original file to the compressed file.
     
