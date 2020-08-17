@@ -1,4 +1,6 @@
 # Huffman_Coding
+*Version 0.9 compresses 1 file at a time*
+
 Self-made C++ compression program based on Huffman's lossless compression algorithm and its decompressor
 
 ## How does it work?
