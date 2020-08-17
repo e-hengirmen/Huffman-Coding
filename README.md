@@ -1,5 +1,5 @@
 # Huffman_Coding
-Self-made C++ compression program based on Huffman's lossless compression algorithm and its decompressor
+Self-made C++ file archiver and archive extractor programs based on Huffman's lossless compression algorithm
 
 ## How does it work?
 ### Compressor:
