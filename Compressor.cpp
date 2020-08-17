@@ -334,7 +334,7 @@ int main(int argc,char *argv[]){
     }
 
     
-    //------------writes fifth----------------
+    //------------writes sixth----------------
     fread(&x,1,1,original_fp);
     for(long int i=0;i<bits;){
         str_pointer=&str_arr[x][0];
