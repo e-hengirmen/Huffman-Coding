@@ -25,18 +25,25 @@ https://en.wikipedia.org/wiki/Huffman_coding#Basic_technique
 ---------PART 2-CREATION OF COMPRESSED FILE-----------
     Original File will be compressed in below order
 
-first (8 bytes)         ->  size of the original file
-second (one byte)       ->  letter_count
-third (one byte)        ->  password_length
-fourth (bytes)          ->  password (if password exists)
-fifth (bit groups)
-    5.1 (8 bits)        ->  current character
-    5.2 (8 bits)        ->  length of the transformation
-    5.3 (bits)          ->  transformation code of that character
-sixth (bit group)
-    6.1 (8 bits)        ->  length of the original file's name
-    6.2 (bits)          ->  transformed version of the original file's name
-seventh (a lot of bits) ->  transformed version of the original file
+
+first (one byte)            ->  letter_count
+second (2 bytes)            ->  file_count
+third (bit group)
+    3.1 (one byte)          ->  password_length
+    3.2 (bytes)             ->  password (if password exists)
+fourth (bit groups)
+    4.1 (8 bits)            ->  current character
+    4.2 (8 bits)            ->  length of the transformation
+    4.3 (bits)              ->  transformation code of that character
+
+    fifth (8 bytes)         ->  size of the original_file[i]
+    sixth (bit group)
+        6.1 (8 bits)        ->  length of the original file[i]'s name
+        6.2 (bits)          ->  transformed version of the original file's name
+    seventh (a lot of bits) ->  transformed version of the original file
+
+**groups from fourth to sixth will be written as much as file count
+
 */
 
 
@@ -58,7 +65,7 @@ int main(int argc,char *argv[]){
     long int bits=0,total_bits=0;
     int letter_count=0;
     if(argc==1){
-        cout<<"Missing file name"<<endl<<"try './archive {file name}'"<<endl;
+        cout<<"Missing file name"<<endl<<"try './archive {{file_name}}'"<<endl;
         return 0;
     }
     for(long int *i=number;i<number+256;i++){                       
@@ -69,20 +76,31 @@ int main(int argc,char *argv[]){
     }
     
     string scompressed;
-    register FILE *original_fp=fopen(argv[1],"rb"),*compressed_fp;
-    if(NULL==original_fp){
-        cout<<argv[1]<<" file does not exist"<<endl;
-        return 0;
+    register FILE *original_fp,*compressed_fp;
+
+    for(int i=1;i<argc;i++){
+        original_fp=fopen(argv[i],"rb");
+        if(!original_fp){
+            cout<<argv[i]<<" file does not exist"<<endl<<"Process has been terminated"<<endl;
+            return 0;
+        }
+        fclose(original_fp);
     }
+    
     scompressed=argv[1];
     scompressed+=".compressed";
 
 
 
     //--------------------1------------------------
-    fseek(original_fp,0,SEEK_END);
-    long int size=ftell(original_fp);
-    rewind(original_fp);
+    long int size[argc],total_size=0;
+    for(long int *i=size;i<size+argc;i++)*i=0;
+    for(int i=1;i<argc;i++){
+        original_fp=fopen(argv[i],"rb");
+        fseek(original_fp,0,SEEK_END);
+        total_size+=size[i]=ftell(original_fp);
+        fclose(original_fp);
+    }
         // size information will later be written to compressed file
     //---------------------------------------------
 
@@ -91,26 +109,32 @@ int main(int argc,char *argv[]){
     //--------------------2------------------------
     register unsigned char x,*x_p;
     x_p=&x;
-    fread(x_p,1,1,original_fp);
-    for(long int i=0;i<size;i++){
-        number[x]++;
-        fread(x_p,1,1,original_fp);
-    }
-    rewind(original_fp);
+    
+    for(int i=1;i<argc;i++){
+        original_fp=fopen(argv[i],"rb");
 
-    for(char *c=argv[1];*c;c++){                //reading file name
-        number[(unsigned char)(*c)]++;
-        number_name[(unsigned char)(*c)]++;
+        fread(x_p,1,1,original_fp);
+        for(long int j=0;j<size[i];j++){               //counting usage frequency of bytes inside the file
+            number[x]++;
+            fread(x_p,1,1,original_fp);
+        }
+        fclose(original_fp);
+
+        for(char *c=argv[i];*c;c++){                //counting usage frequency of bytes on the file name
+            number[(unsigned char)(*c)]++;
+            number_name[(unsigned char)(*c)]++;
+        }
     }
+    total_bits+=64*(argc-1);
 
 	for(long int *i=number;i<number+256;i++){                 
         	if(*i){
 			letter_count++;
 			}
     }
-        // This code block counts number of times that all of the unique bytes is used on the first block
-        // and stores that info in 'number' array
-        // after that it checks the 'number' array and writes the number of unique byte count to 'letter_count' variable
+        // This code block counts number of times that all of the unique bytes is used on the files and file names
+        // and stores that info in 'number' and 'number_names' arrays
+        // after that it checks the 'number' and 'number_names' arrays and writes the number of unique byte count to 'letter_count' variable
     //---------------------------------------------
 
 
@@ -218,28 +242,20 @@ int main(int argc,char *argv[]){
 
     compressed_fp=fopen(&scompressed[0],"wb");
 
-    //-------------writes first---------------
-    {
-        long int temp_size=size;
-        unsigned char temp;
-        for(int i=0;i<8;i++){
-            temp=temp_size%256;
-            fwrite(&temp,1,1,compressed_fp);
-            temp_size/=256;
-        }
-        total_bits+=64;
-    }
-        //This code block is writing byte count of the original file to compressed file's first 8 bytes
-            //It is done like this to make sure that it can work on little, big or middle-endian systems
-    //----------------------------------------
-
-    //-----------writes second----------------
+    //------writes .first and .second--------
     fwrite(&letter_count,1,1,compressed_fp);
-    total_bits+=8;
-    //----------------------------------------
-    
+    {
+        unsigned char temp=(argc-1)%256;
+        fwrite(&temp,1,1,compressed_fp);
+        temp=(argc-1)/256;
+        fwrite(&temp,1,1,compressed_fp);
+        total_bits+=24;
+    }
+    //This code block is writing file count to be translated to compressed file's first 2 bytes
+                //It is done like this to make sure that it can work on little, big or middle-endian systems
+    //---------------------------------------
 
-    //----writes third and forth---------------
+    //--------------writes third-------------
     {
         cout<<"If you want a password write any number other then 0"<<endl
             <<"If you do not, write 0"<<endl;
@@ -253,14 +269,12 @@ int main(int argc,char *argv[]){
             if(password_length==0){
                 cout<<"You did not enter a password"<<endl<<"Process has been terminated"<<endl;
                 fclose(compressed_fp);
-                fclose(original_fp);
                 remove(&scompressed[0]);
                 return 0;
             }
             if(password_length>100){
                 cout<<"Password cannot contain more then 100 characters"<<endl<<"Process has been terminated"<<endl;
                 fclose(compressed_fp);
-                fclose(original_fp);
                 remove(&scompressed[0]);
                 return 0;
             }
@@ -277,7 +291,9 @@ int main(int argc,char *argv[]){
         //Above code block puts password to compressed file
     //----------------------------------------
 
-    //------------writes fifth----------------
+
+
+    //------------writes fourth---------------
     char *str_pointer;
     unsigned char current_byte,len,current_character;
     int current_bit_count=0;
@@ -305,7 +321,6 @@ int main(int argc,char *argv[]){
                 case '0':current_byte<<=1;current_bit_count++;break;
                 default:cout<<"An error has occurred"<<endl<<"Compression process aborted"<<endl;
                 fclose(compressed_fp);
-                fclose(original_fp);
                 remove(&scompressed[0]);
                 return 1;
             }
@@ -316,7 +331,7 @@ int main(int argc,char *argv[]){
          total_bits+=len*number_name[e->character];
     }           
     total_bits+=bits;
-    total_bits+=8;          //for 6.1
+    total_bits+=(argc-1)*8;          //for 6.1
     unsigned char bits_in_last_byte=total_bits%8;
     if(bits_in_last_byte){
         total_bits=(total_bits/8+1)*8;
@@ -330,11 +345,11 @@ int main(int argc,char *argv[]){
     //----------------------------------------
 
 
-    cout<<"The size of the ORIGINAL file is: "<<size<<" bytes"<<endl;
+    cout<<"The size of the sum of ORIGINAL files is: "<<total_size<<" bytes"<<endl;
     cout<<"The size of the COMPRESSED file will be: "<<total_bits/8<<" bytes"<<endl;
-    cout<<"Compressed file's size will be [%"<<100*((float)total_bits/8/size)<<"] of the original file"<<endl;
-    if(total_bits/8>size){
-        cout<<endl<<"COMPRESSED FILE'S SIZE WILL BE HIGHER THAN THE ORIGINAL"<<endl<<endl;
+    cout<<"Compressed file's size will be [%"<<100*((float)total_bits/8/total_size)<<"] of the original file"<<endl;
+    if(total_bits/8>total_size){
+        cout<<endl<<"COMPRESSED FILE'S SIZE WILL BE HIGHER THAN THE SUM OF ORIGINALS"<<endl<<endl;
     }
     cout<<"If you wish to abort this process write 0 and press enter"<<endl
         <<"If you want to continue write any other number and press enter"<<endl;
@@ -343,7 +358,6 @@ int main(int argc,char *argv[]){
     if(!check){
         cout<<endl<<"Process has been aborted"<<endl;
         fclose(compressed_fp);
-        fclose(original_fp);
         remove(&scompressed[0]);
         return 0;
     }
@@ -353,61 +367,78 @@ int main(int argc,char *argv[]){
 
 
 
-    //------------writes sixth----------------
-    write_from_uChar(strlen(argv[1]),&current_byte,current_bit_count,compressed_fp);        //New
-    for(char *c=argv[1];*c;c++){                                                            //New
-        str_pointer=&str_arr[(unsigned char)(*c)][0];
-        while(*str_pointer){
-            if(current_bit_count==8){
-                fwrite(&current_byte,1,1,compressed_fp);
-                current_bit_count=0;
+
+    for(int current_file=1;current_file<argc;current_file++){
+        original_fp=fopen(argv[current_file],"rb");
+
+        //-------------writes fifth---------------
+        {
+            long int temp_size=size[current_file];
+            for(int i=0;i<8;i++){
+                write_from_uChar(temp_size%256,&current_byte,current_bit_count,compressed_fp);
+                temp_size/=256;
             }
-            switch(*str_pointer){
-                case '1':current_byte<<=1;current_byte|=1;current_bit_count++;break;
-                case '0':current_byte<<=1;current_bit_count++;break;
-                default:cout<<"An error has occurred"<<endl<<"Process has been aborted";
-                fclose(compressed_fp);
-                fclose(original_fp);
-                remove(&scompressed[0]);
-                return 2;
-            }
-            str_pointer++;
         }
-    }
-    //----------------------------------------
+            //This code block is writing byte count of the original file to compressed file's first 8 bytes
+                //It is done like this to make sure that it can work on little, big or middle-endian systems
+        //----------------------------------------
 
 
-
-
-
-
-
-
-    
-    //-----------writes seventh---------------
-    fread(x_p,1,1,original_fp);
-    for(long int i=0;i<bits;){
-        str_pointer=&str_arr[x][0];
-        while(*str_pointer){
-            if(current_bit_count==8){
-                fwrite(&current_byte,1,1,compressed_fp);
-                current_bit_count=0;
+        //------------writes sixth----------------
+        write_from_uChar(strlen(argv[current_file]),&current_byte,current_bit_count,compressed_fp);
+        for(char *c=argv[current_file];*c;c++){
+            str_pointer=&str_arr[(unsigned char)(*c)][0];
+            while(*str_pointer){
+                if(current_bit_count==8){
+                    fwrite(&current_byte,1,1,compressed_fp);
+                    current_bit_count=0;
+                }
+                switch(*str_pointer){
+                    case '1':current_byte<<=1;current_byte|=1;current_bit_count++;break;
+                    case '0':current_byte<<=1;current_bit_count++;break;
+                    default:cout<<"An error has occurred"<<endl<<"Process has been aborted";
+                    fclose(compressed_fp);
+                    fclose(original_fp);
+                    remove(&scompressed[0]);
+                    return 2;
+                }
+                str_pointer++;
             }
-            switch(*str_pointer){
-                case '1':i++;current_byte<<=1;current_byte|=1;current_bit_count++;break;
-                case '0':i++;current_byte<<=1;current_bit_count++;break;
-                default:cout<<"An error has occurred"<<endl<<"Process has been aborted";
-                fclose(compressed_fp);
-                fclose(original_fp);
-                remove(&scompressed[0]);
-                return 2;
-            }
-            str_pointer++;
         }
+        //----------------------------------------
+
+
+        //-----------writes seventh---------------
         fread(x_p,1,1,original_fp);
+        for(long int i=0;i<size[current_file];i++){
+            str_pointer=&str_arr[x][0];
+            while(*str_pointer){
+                if(current_bit_count==8){
+                    fwrite(&current_byte,1,1,compressed_fp);
+                    current_bit_count=0;
+                }
+                switch(*str_pointer){
+                    case '1':current_byte<<=1;current_byte|=1;current_bit_count++;break;
+                    case '0':current_byte<<=1;current_bit_count++;break;
+                    default:cout<<"An error has occurred"<<endl<<"Process has been aborted";
+                    fclose(compressed_fp);
+                    fclose(original_fp);
+                    remove(&scompressed[0]);
+                    return 2;
+                }
+                str_pointer++;
+            }
+            fread(x_p,1,1,original_fp);
+        }
+        fclose(original_fp);
+        // Above code block writes bytes that are translated from original file to the compressed file.
+        //----------------------------------------
+
+
     }
-    // Above code writes bytes that are translated from original file to the compressed file.
-    
+
+
+
     if(current_bit_count==8){
         fwrite(&current_byte,1,1,compressed_fp);
     }
@@ -415,13 +446,8 @@ int main(int argc,char *argv[]){
         current_byte<<=8-current_bit_count;
         fwrite(&current_byte,1,1,compressed_fp);
     }
-    //----------------------------------------
-
-
 
     fclose(compressed_fp);
-    fclose(original_fp);
-
     cout<<"Compression is complete"<<endl;
     
 }
@@ -429,7 +455,7 @@ int main(int argc,char *argv[]){
 
 
 //below function is used for writing the uChar to fp_write file
-    //It does not write it directly as one byte instead it mixes uChar and currnt byte writes 8 bits of it 
+    //It does not write it directly as one byte instead it mixes uChar and current byte, writes 8 bits of it 
     //and puts the rest to curent byte for later use
 void write_from_uChar(unsigned char uChar,unsigned char *current_byte,int current_bit_count,FILE *fp_write){
     (*current_byte)<<=8-current_bit_count;

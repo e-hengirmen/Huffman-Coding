@@ -23,18 +23,24 @@ void burn_tree(translation*);
     compressed file's composition is in order below
     that is why we re going to translate it part by part
 
-.first (8 bytes)         ->  size of the original file
-.second (one byte)       ->  letter_count
-.third (one byte)        ->  password_length
-.fourth (bytes)          ->  password (if password exists)
-.fifth (bit groups)
-    5.1 (8 bits)        ->  current character
-    5.2 (8 bits)        ->  length of the transformation
-    5.3 (bits)          ->  transformation code of that character
-.sixth (bit group)
-    6.1 (8 bits)        ->  length of the original file's name
-    6.2 (bits)          ->  transformed version of the original file's name
-.seventh (a lot of bits)->  transformed version of the original file
+.first (one byte)           ->  letter_count
+.second (2 bytes)           ->  file_count
+.third (bit group)
+    3.1 (one byte)          ->  password_length
+    3.2 (bytes)             ->  password (if password exists)
+.fourth (bit groups)
+    4.1 (8 bits)            ->  current character
+    4.2 (8 bits)            ->  length of the transformation
+    4.3 (bits)              ->  transformation code of that character
+
+    .fifth (8 bytes)        ->  size of the original_file[i]
+    .sixth (bit group)
+        6.1 (8 bits)        ->  length of the original file[i]'s name
+        6.2 (bits)          ->  transformed version of the original file's name
+    .seventh (a lot of bits)->  transformed version of the original file
+
+**groups from fourth to sixth will be written as much as file count
+
 */
 
 
@@ -47,7 +53,7 @@ int main(int argc,char *argv[]){
     int letter_count=0,password_length=0;
     register FILE *fp_compressed,*fp_new;
     if(argc==1){
-        cout<<"Missing file name"<<endl<<"try './extract {file name}'"<<endl;
+        cout<<"Missing file name"<<endl<<"try './extract {{file_name}}'"<<endl;
         return 0;
     }
     fp_compressed=fopen(argv[1],"rb");
@@ -59,31 +65,26 @@ int main(int argc,char *argv[]){
 
 
     //---------reads .first-----------
-    long int size=0;
-    {
-        long int multiplier=1;
-        unsigned char temp;
-        for(int i=0;i<8;i++){
-            fread(&temp,1,1,fp_compressed);
-            size+=temp*multiplier;
-            multiplier*=256;
-        }
-    }
-        // Size was written to the compressed file from least significiant byte 
-        // to the most significiant byte to make sure system's endianness
-        // does not affect the process and that is why we are processing size information like this
-    //-------------------------------
-
-
-
-    //---------reads .second-----------
     fread(&letter_count,1,1,fp_compressed);
     if(letter_count==0)letter_count=256;
     //-------------------------------
 
 
 
-    //------------reads .third and .fourth--------------------
+    //---------reads .second----------
+    int file_count;
+    {
+        unsigned char temp;
+        fread(&temp,1,1,fp_compressed);
+        file_count=temp;
+        fread(&temp,1,1,fp_compressed);
+        file_count+=256*temp;
+    }
+    //--------------------------------
+
+
+
+    //-----------------reads .third--------------------
     fread(&password_length,1,1,fp_compressed);
     if(password_length){
         char real_password[password_length+1],password_input[257];
@@ -107,11 +108,10 @@ int main(int argc,char *argv[]){
         cout<<"Correct Password"<<endl;
     }
         // this code block reads and checks the password
-    //----------------------------------------------------
+    //--------------------------------------------------
 
 
-
-    //----------------reads .fifth----------------------
+    //----------------reads .fourth---------------------
         // and stores transformation info into translation tree for later use
     unsigned char current_byte=0,current_character;
     int current_bit_count=0,len;
@@ -127,61 +127,116 @@ int main(int argc,char *argv[]){
 
 
 
-    //---------------reads .sixth---------------------
-        //Decodes original file's name
-    int file_name_length=process_8_bits_NUMBER(&current_byte,current_bit_count,fp_compressed);
-    char newfile[file_name_length+4];       //change later
-    newfile[file_name_length]=0;          //change later
-    translation *node;
-    for(int i=0;i<file_name_length;i++){
-        node=root;
-        while(node->zero||node->one){
-            if(current_bit_count==0){
-                fread(&current_byte,1,1,fp_compressed);
-                current_bit_count=8;
+
+
+
+
+
+
+
+    for(int current_file=0;current_file<file_count;current_file++){
+
+        //---------reads .fifth-----------
+        long int size=0;
+        {
+            long int multiplier=1;
+            for(int i=0;i<8;i++){
+                size+=process_8_bits_NUMBER(&current_byte,current_bit_count,fp_compressed)*multiplier;
+                multiplier*=256;
             }
-            if(current_byte&check){
-                node=node->one;
-            }
-            else{
-                node=node->zero;
-            }
-            current_byte<<=1;           
-            current_bit_count--;
         }
-        newfile[i]=node->character;
-    }
-    change_name_if_exists(newfile);
-
-
-    //--------------------------------------------------
+            // Size was written to the compressed file from least significiant byte 
+            // to the most significiant byte to make sure system's endianness
+            // does not affect the process and that is why we are processing size information like this
+        //--------------------------------
 
 
 
-    //---------------reads .seventh---------------------
-        // Translates compressed file from info that is now stored in the translation tree
-        // than writes it to new file
-    fp_new=fopen(newfile,"wb");
-    for(long int i=0;i<size;i++){
-        node=root;
-        while(node->zero||node->one){
-            if(current_bit_count==0){
-                fread(&current_byte,1,1,fp_compressed);
-                current_bit_count=8;
+        //---------------reads .sixth---------------------
+            //Decodes original file's name
+        int file_name_length=process_8_bits_NUMBER(&current_byte,current_bit_count,fp_compressed);
+        char newfile[file_name_length+4];       //change later
+        newfile[file_name_length]=0;          //change later
+        translation *node;
+        for(int i=0;i<file_name_length;i++){
+            node=root;
+            while(node->zero||node->one){
+                if(current_bit_count==0){
+                    fread(&current_byte,1,1,fp_compressed);
+                    current_bit_count=8;
+                }
+                if(current_byte&check){
+                    node=node->one;
+                }
+                else{
+                    node=node->zero;
+                }
+                current_byte<<=1;           
+                current_bit_count--;
             }
-            if(current_byte&check){
-                node=node->one;
-            }
-            else{
-                node=node->zero;
-            }
-            current_byte<<=1;           
-            current_bit_count--;
+            newfile[i]=node->character;
         }
-        fwrite(&(node->character),1,1,fp_new);
-    }
-    //--------------------------------------------------
+        change_name_if_exists(newfile);
+        //--------------------------------------------------
 
+
+        //---------------reads .seventh---------------------
+            // Translates compressed file from info that is now stored in the translation tree
+            // than writes it to new file
+        fp_new=fopen(newfile,"wb");
+        for(long int i=0;i<size;i++){
+            node=root;
+            while(node->zero||node->one){
+                if(current_bit_count==0){
+                    fread(&current_byte,1,1,fp_compressed);
+                    current_bit_count=8;
+                }
+                if(current_byte&check){
+                    node=node->one;
+                }
+                else{
+                    node=node->zero;
+                }
+                current_byte<<=1;           
+                current_bit_count--;
+            }
+            fwrite(&(node->character),1,1,fp_new);
+        }
+        //--------------------------------------------------
+        fclose(fp_new);
+    }
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+    
+
+
+
+    
+
+
+
+    
+
+
+
+
+
+
+
+
+    fclose(fp_compressed);
     burn_tree(root);
     cout<<"Decompression is complete"<<endl;
 }
