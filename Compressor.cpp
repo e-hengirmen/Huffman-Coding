@@ -3,6 +3,7 @@
 #include <string>
 #include <algorithm>
 #include <cstdlib>
+#include <cstring>
 using namespace std;
 
 void write_from_uChar(unsigned char,unsigned char*,int,FILE*);
@@ -32,7 +33,10 @@ fifth (bit groups)
     5.1 (8 bits)        ->  current character
     5.2 (8 bits)        ->  length of the transformation
     5.3 (bits)          ->  transformation code of that character
-sixth (a lot of bits)   ->  transformed version of the original file
+sixth (bit group)
+    6.1 (8 bits)        ->  length of the original file's name
+    6.2 (bits)          ->  transformed version of the original file's name
+seventh (a lot of bits) ->  transformed version of the original file
 */
 
 
@@ -50,7 +54,7 @@ bool erselcompare0(ersel a,ersel b){
 
 
 int main(int argc,char *argv[]){
-    long int number[256];
+    long int number[256],number_name[256];
     long int bits=0,total_bits=0;
     int letter_count=0;
     if(argc==1){
@@ -58,6 +62,9 @@ int main(int argc,char *argv[]){
         return 0;
     }
     for(long int *i=number;i<number+256;i++){                       
+        *i=0;
+    }
+    for(long int *i=number_name;i<number_name+256;i++){                       
         *i=0;
     }
     
@@ -90,6 +97,11 @@ int main(int argc,char *argv[]){
         fread(x_p,1,1,original_fp);
     }
     rewind(original_fp);
+
+    for(char *c=argv[1];*c;c++){                //reading file name
+        number[(unsigned char)(*c)]++;
+        number_name[(unsigned char)(*c)]++;
+    }
 
 	for(long int *i=number;i<number+256;i++){                 
         	if(*i){
@@ -300,9 +312,11 @@ int main(int argc,char *argv[]){
            str_pointer++;
         }
         
-         bits+=len*e->number;
+         bits+=len*(e->number-number_name[e->character]);
+         total_bits+=len*number_name[e->character];
     }           
     total_bits+=bits;
+    total_bits+=8;          //for 6.1
     unsigned char bits_in_last_byte=total_bits%8;
     if(bits_in_last_byte){
         total_bits=(total_bits/8+1)*8;
@@ -334,8 +348,43 @@ int main(int argc,char *argv[]){
         return 0;
     }
 
-    
+
+
+
+
+
     //------------writes sixth----------------
+    write_from_uChar(strlen(argv[1]),&current_byte,current_bit_count,compressed_fp);        //New
+    for(char *c=argv[1];*c;c++){                                                            //New
+        str_pointer=&str_arr[(unsigned char)(*c)][0];
+        while(*str_pointer){
+            if(current_bit_count==8){
+                fwrite(&current_byte,1,1,compressed_fp);
+                current_bit_count=0;
+            }
+            switch(*str_pointer){
+                case '1':current_byte<<=1;current_byte|=1;current_bit_count++;break;
+                case '0':current_byte<<=1;current_bit_count++;break;
+                default:cout<<"An error has occurred"<<endl<<"Process has been aborted";
+                fclose(compressed_fp);
+                fclose(original_fp);
+                remove(&scompressed[0]);
+                return 2;
+            }
+            str_pointer++;
+        }
+    }
+    //----------------------------------------
+
+
+
+
+
+
+
+
+    
+    //-----------writes seventh---------------
     fread(x_p,1,1,original_fp);
     for(long int i=0;i<bits;){
         str_pointer=&str_arr[x][0];

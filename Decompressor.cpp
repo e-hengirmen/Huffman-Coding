@@ -12,7 +12,7 @@ struct translation{
     unsigned char character;
 };
 
-void str_without_compress(char*);
+void change_name_if_exists(char*);
 unsigned char process_8_bits_NUMBER(unsigned char*,int,FILE*);
 void process_n_bits_TO_STRING(unsigned char*,int,int*,FILE*,translation*,unsigned char);
 void burn_tree(translation*);
@@ -31,7 +31,10 @@ void burn_tree(translation*);
     5.1 (8 bits)        ->  current character
     5.2 (8 bits)        ->  length of the transformation
     5.3 (bits)          ->  transformation code of that character
-.sixth (a lot of bits)   ->  transformed version of the original file
+.sixth (bit group)
+    6.1 (8 bits)        ->  length of the original file's name
+    6.2 (bits)          ->  transformed version of the original file's name
+.seventh (a lot of bits)->  transformed version of the original file
 */
 
 
@@ -41,9 +44,8 @@ void burn_tree(translation*);
 
 
 int main(int argc,char *argv[]){
-    int letter_count,password_length;
+    int letter_count=0,password_length=0;
     register FILE *fp_compressed,*fp_new;
-    char newfile[260]="New-";
     if(argc==1){
         cout<<"Missing file name"<<endl<<"try './extract {file name}'"<<endl;
         return 0;
@@ -74,8 +76,6 @@ int main(int argc,char *argv[]){
 
 
 
-    str_without_compress(argv[1]);
-    strcpy(newfile+4,argv[1]);
     //---------reads .second-----------
     fread(&letter_count,1,1,fp_compressed);
     if(letter_count==0)letter_count=256;
@@ -127,12 +127,41 @@ int main(int argc,char *argv[]){
 
 
 
-    //----------------reads .sixth----------------------
-        // Translates .sixth from info that is stored in translation tree
+    //---------------reads .sixth---------------------
+        //Decodes original file's name
+    int file_name_length=process_8_bits_NUMBER(&current_byte,current_bit_count,fp_compressed);
+    char newfile[file_name_length+4];       //change later
+    newfile[file_name_length]=0;          //change later
+    translation *node;
+    for(int i=0;i<file_name_length;i++){
+        node=root;
+        while(node->zero||node->one){
+            if(current_bit_count==0){
+                fread(&current_byte,1,1,fp_compressed);
+                current_bit_count=8;
+            }
+            if(current_byte&check){
+                node=node->one;
+            }
+            else{
+                node=node->zero;
+            }
+            current_byte<<=1;           
+            current_bit_count--;
+        }
+        newfile[i]=node->character;
+    }
+    change_name_if_exists(newfile);
+
+
+    //--------------------------------------------------
+
+
+
+    //---------------reads .seventh---------------------
+        // Translates compressed file from info that is now stored in the translation tree
         // than writes it to new file
     fp_new=fopen(newfile,"wb");
-    translation *node;
-
     for(long int i=0;i<size;i++){
         node=root;
         while(node->zero||node->one){
@@ -199,17 +228,36 @@ unsigned char process_8_bits_NUMBER(unsigned char *current_byte,int current_bit_
     return val;
 }
 
-void str_without_compress(char *p){
-    char s[12]="desserpmoc.";
-    char *p1=p,*p2=s;
-    if(strlen(p)<12)return;
-    for(;*p1;p1++);
-    p1--;
-    for(;*p2;p1--,p2++){
-        if(*p1!=*p2){
-            return;
+void change_name_if_exists(char *name){
+    FILE *fp=fopen(name,"rb");
+    char *i;
+    int copy_count;
+    if(fp){
+        fclose(fp);
+        char *dot_pointer=NULL;
+        for(i=name;*i;i++){
+            if(*i=='.')
+            dot_pointer=i;
+        }
+        if(dot_pointer){
+            string s=dot_pointer;
+            strcpy(dot_pointer,"(1)");
+            dot_pointer++;
+            strcpy(dot_pointer+2,&s[0]);
+        }
+        else{
+            dot_pointer=i;
+            strcpy(dot_pointer,"(1)");
+            dot_pointer++;
+        }
+        for(copy_count=1;copy_count<10;copy_count++){
+            *dot_pointer=(char)('0'+copy_count);
+            if(fp=fopen(name,"rb")){
+                fclose(fp);
+            }
+            else{
+                break;
+            }
         }
     }
-    p1++;
-    *p1=0;
 }
