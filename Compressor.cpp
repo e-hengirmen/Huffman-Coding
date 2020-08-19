@@ -76,7 +76,7 @@ int main(int argc,char *argv[]){
     }
     
     string scompressed;
-    register FILE *original_fp,*compressed_fp;
+    FILE *original_fp,*compressed_fp;
 
     for(int i=1;i<argc;i++){
         original_fp=fopen(argv[i],"rb");
@@ -107,7 +107,7 @@ int main(int argc,char *argv[]){
 
 
     //--------------------2------------------------
-    register unsigned char x,*x_p;
+    unsigned char *x_p,x;
     x_p=&x;
     
     for(int i=1;i<argc;i++){
@@ -141,7 +141,7 @@ int main(int argc,char *argv[]){
 
     //--------------------3------------------------
     ersel array[letter_count*2-1];
-    register ersel *e=array;
+    ersel *e=array;
     for(long int *i=number;i<number+256;i++){                         
         	if(*i){
                 e->right=NULL;

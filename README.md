@@ -40,5 +40,5 @@ The Decompressor first reads translation info and creates a binary tree from it.
 ## TODO list
 * ~~Finish decompressor~~(DONE)
 * ~~Improve documentation~~(DONE)
-* Huffman.cpp should compress multiple files
+* ~~Huffman.cpp should compress multiple files~~(DONE)
 * Huffman.cpp should compress folders

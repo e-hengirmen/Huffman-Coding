@@ -8,7 +8,7 @@ using namespace std;
 unsigned char check=0b10000000;
 
 struct translation{
-    translation *zero=NULL,*one=NULL;
+    translation *zero,*one;
     unsigned char character;
 };
 
@@ -51,7 +51,7 @@ void burn_tree(translation*);
 
 int main(int argc,char *argv[]){
     int letter_count=0,password_length=0;
-    register FILE *fp_compressed,*fp_new;
+    FILE *fp_compressed,*fp_new;
     if(argc==1){
         cout<<"Missing file name"<<endl<<"try './extract {{file_name}}'"<<endl;
         return 0;
@@ -116,6 +116,8 @@ int main(int argc,char *argv[]){
     unsigned char current_byte=0,current_character;
     int current_bit_count=0,len;
     translation *root=(translation*)malloc(sizeof(translation));
+    root->zero=NULL;
+    root->one=NULL;
 
     for(int i=0;i<letter_count;i++){
         current_character=process_8_bits_NUMBER(&current_byte,current_bit_count,fp_compressed);
@@ -259,11 +261,19 @@ void process_n_bits_TO_STRING(unsigned char *current_byte,int n,int *current_bit
 
         switch((*current_byte)&check){
             case 0:
-            if(!(node->zero))node->zero=(translation*)malloc(sizeof(translation));
+            if(!(node->zero)){
+                node->zero=(translation*)malloc(sizeof(translation));
+                node->zero->zero=NULL;
+                node->zero->one=NULL;
+            }
             node=node->zero;
             break;
             case 128:
-            if(!(node->one))node->one=(translation*)malloc(sizeof(translation));
+            if(!(node->one)){
+                node->one=(translation*)malloc(sizeof(translation));
+                node->one->zero=NULL;
+                node->one->one=NULL;
+            }
             node=node->one;
             break;
         }
