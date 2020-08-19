@@ -1,5 +1,5 @@
 # Huffman_Coding
-Self-made C++ compression program based on Huffman's lossless compression algorithm and its decompressor
+Self-made C++ file archiver and archive extractor programs based on Huffman's lossless compression algorithm
 
 ## How does it work?
 ### Compressor:
@@ -7,11 +7,11 @@ The Compressor is a 2-pass program. What I mean by this is that the Compressor r
 
 In the first pass, the program counts usage frequency of every unique byte and creates a weighted translation tree for every used unique byte inversely proportional to its usage frequency and then writes this transformation info to the compressed file for decompression purposes
 
-In the second pass, the program translates the file according to the translation tree and writes it to the compressed file
+In the second pass, the program translates the file according to the translation tree and writes it to the newly created compressed file
 
 ### Decompressor:
 The Decompressor is a 1-pass program:
-The Decompressor first reads translation info and creates a binary tree from it. After this process is done, it uses this binary translation tree to translate the rest of the file
+The Decompressor first reads translation info and creates a binary tree from it. After this process is done, it uses this binary translation tree to decode the rest of the file
 
 ## How does one use it?
 
@@ -39,9 +39,6 @@ The Decompressor first reads translation info and creates a binary tree from it.
 
 ## TODO list
 * ~~Finish decompressor~~(DONE)
-* ~~Add a size checker~~(DONE)
 * ~~Improve documentation~~(DONE)
-* Name of the file should be added to compression code
-* ~~Add a make file or shell script~~(Done)(added script)
 * Huffman.cpp should compress multiple files
 * Huffman.cpp should compress folders
