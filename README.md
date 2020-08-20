@@ -39,9 +39,3 @@ The Decompressor first reads translation info and creates a binary tree from it.
 ```
 ## Shortcomings
 * Compressor.cpp does not compress folders
-
-## TODO list
-* ~~Finish decompressor~~(DONE)
-* ~~Improve documentation~~(DONE)
-* ~~Make Compressor.cpp compress multiple files~~(DONE)
-* Make Compressor.cpp compress folders
