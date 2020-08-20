@@ -35,10 +35,6 @@ The Decompressor first reads translation info and creates a binary tree from it.
 ```
     ./extract {{filename}}
 ```
-* If you want to check the size of a file use the command below
-```
-    ./check_size {{filename}}
-```
 ## Shortcomings
 * Compressor.cpp does not compress folders
 

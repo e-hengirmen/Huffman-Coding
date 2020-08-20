@@ -36,18 +36,18 @@ fourth (bit groups)
     4.2 (8 bits)            ->  length of the transformation
     4.3 (bits)              ->  transformation code of that character
 
-    fifth (8 bytes)         ->  size of the original_file[i]
+    fifth (8 bytes)         ->  size of current input_file
     sixth (bit group)
-        6.1 (8 bits)        ->  length of the original file[i]'s name
-        6.2 (bits)          ->  transformed version of the original file's name
-    seventh (a lot of bits) ->  transformed version of the original file
+        6.1 (8 bits)        ->  length of current input_file's name
+        6.2 (bits)          ->  transformed version of current input_file's name
+    seventh (a lot of bits) ->  transformed version of current input_file
 
 **groups from fourth to sixth will be written as much as file count
 
 */
 
 
-struct ersel{
+struct ersel{   //this structure will be used to create the translation tree
     ersel *left,*right;
     long int number;
     unsigned char character;
@@ -114,13 +114,13 @@ int main(int argc,char *argv[]){
         original_fp=fopen(argv[i],"rb");
 
         fread(x_p,1,1,original_fp);
-        for(long int j=0;j<size[i];j++){               //counting usage frequency of bytes inside the file
+        for(long int j=0;j<size[i];j++){    //counting usage frequency of bytes inside the file
             number[x]++;
             fread(x_p,1,1,original_fp);
         }
         fclose(original_fp);
 
-        for(char *c=argv[i];*c;c++){                //counting usage frequency of bytes on the file name
+        for(char *c=argv[i];*c;c++){        //counting usage frequency of bytes on the file name
             number[(unsigned char)(*c)]++;
             number_name[(unsigned char)(*c)]++;
         }
@@ -152,9 +152,9 @@ int main(int argc,char *argv[]){
             }
     }
     sort(array,array+letter_count,erselcompare0);
-        // creating the base of translation array(and then sorting them by ascending numbers)
-        //     this array of type 'ersel' will not be used after calculating transformed versions of every unique byte
-        //     instead its info will be written in a new string array called str_arr 
+        // creating the base of translation array(and then sorting them by ascending frequincies)
+            // this array of type 'ersel' will not be used after calculating transformed versions of every unique byte
+            // instead its info will be written in a new string array called str_arr 
     //---------------------------------------------
     
                    
@@ -252,8 +252,10 @@ int main(int argc,char *argv[]){
         total_bits+=24;
     }
     //This code block is writing file count to be translated to compressed file's first 2 bytes
-                //It is done like this to make sure that it can work on little, big or middle-endian systems
+        //It is done like this to make sure that it can work on little, big or middle-endian systems
     //---------------------------------------
+
+
 
     //--------------writes third-------------
     {
@@ -299,7 +301,7 @@ int main(int argc,char *argv[]){
     int current_bit_count=0;
     string str_arr[256];
     for(e=array;e<array+letter_count;e++){
-        str_arr[(e->character)]=e->bit;
+        str_arr[(e->character)]=e->bit;     //we are putting the transformation string to str_arr array to make the process more time efficient
         len=e->bit.length();
         current_character=e->character;
 
@@ -335,7 +337,7 @@ int main(int argc,char *argv[]){
     unsigned char bits_in_last_byte=total_bits%8;
     if(bits_in_last_byte){
         total_bits=(total_bits/8+1)*8;
-        // from this point on total bits doesnt represent total bits but
+        // from this point on total bits doesnt represent total bits
         // instead it represents 8*number_of_bytes we are gonna use on our compressed file
     }
     /* Above loop of the code is doing 2 in this order
@@ -379,7 +381,7 @@ int main(int argc,char *argv[]){
                 temp_size/=256;
             }
         }
-            //This code block is writing byte count of the original file to compressed file's first 8 bytes
+            //This code block is writing byte count of current input file to compressed file using 8 bytes
                 //It is done like this to make sure that it can work on little, big or middle-endian systems
         //----------------------------------------
 
@@ -405,6 +407,7 @@ int main(int argc,char *argv[]){
                 str_pointer++;
             }
         }
+        // Above code block writes bytes that are translated from current input file's name to the compressed file.
         //----------------------------------------
 
 
@@ -431,7 +434,7 @@ int main(int argc,char *argv[]){
             fread(x_p,1,1,original_fp);
         }
         fclose(original_fp);
-        // Above code block writes bytes that are translated from original file to the compressed file.
+        // Above code block writes bytes that are translated from current input file to the compressed file.
         //----------------------------------------
 
 

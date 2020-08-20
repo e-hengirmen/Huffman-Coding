@@ -33,14 +33,13 @@ void burn_tree(translation*);
     4.2 (8 bits)            ->  length of the transformation
     4.3 (bits)              ->  transformation code of that character
 
-    .fifth (8 bytes)        ->  size of the original_file[i]
+    .fifth (8 bytes)        ->  size of current original_file
     .sixth (bit group)
-        6.1 (8 bits)        ->  length of the original file[i]'s name
-        6.2 (bits)          ->  transformed version of the original file's name
-    .seventh (a lot of bits)->  transformed version of the original file
+        6.1 (8 bits)        ->  length of current original_file's name
+        6.2 (bits)          ->  transformed version of current original_file's name
+    .seventh (a lot of bits)->  transformed version of current original_file
 
-**groups from fourth to sixth will be written as much as file count
-
+**groups from fourth to sixth will be written as much as the file count
 */
 
 
@@ -155,7 +154,7 @@ int main(int argc,char *argv[]){
 
 
         //---------------reads .sixth---------------------
-            //Decodes original file's name
+            //Decodes current file's name
         int file_name_length=process_8_bits_NUMBER(&current_byte,current_bit_count,fp_compressed);
         char newfile[file_name_length+4];       //change later
         newfile[file_name_length]=0;          //change later
@@ -183,8 +182,8 @@ int main(int argc,char *argv[]){
 
 
         //---------------reads .seventh---------------------
-            // Translates compressed file from info that is now stored in the translation tree
-            // than writes it to new file
+            // This code block translates compressed file from info that is now stored in the translation tree
+            // than writes it to a newly created file
         fp_new=fopen(newfile,"wb");
         for(long int i=0;i<size;i++){
             node=root;
