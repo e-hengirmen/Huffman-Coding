@@ -34,11 +34,10 @@ The Decompressor first reads translation info and creates a binary tree from it.
     ./check_size {{filename}}
 ```
 ## Shortcomings
-* Compressor.cpp does not compress multiple files
 * Compressor.cpp does not compress folders
 
 ## TODO list
 * ~~Finish decompressor~~(DONE)
 * ~~Improve documentation~~(DONE)
-* ~~Huffman.cpp should compress multiple files~~(DONE)
-* Huffman.cpp should compress folders
+* ~~Make Compressor.cpp compress multiple files~~(DONE)
+* Make Compressor.cpp compress folders
