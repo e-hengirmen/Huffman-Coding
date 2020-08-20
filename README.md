@@ -38,9 +38,3 @@ The Decompressor first reads translation info and creates a binary tree from it.
 ## Shortcomings
 * Compressor.cpp does not compress multiple files
 * Compressor.cpp does not compress folders
-
-## TODO list
-* ~~Finish decompressor~~(DONE)
-* ~~Improve documentation~~(DONE)
-* Huffman.cpp should compress multiple files
-* Huffman.cpp should compress folders
