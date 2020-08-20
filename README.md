@@ -1,4 +1,6 @@
 # Huffman_Coding
+*Version 0.9 compresses multiple files but it can not be used to compress folders*
+
 Self-made C++ file archiver and archive extractor programs based on Huffman's lossless compression algorithm
 
 ## How does it work?
