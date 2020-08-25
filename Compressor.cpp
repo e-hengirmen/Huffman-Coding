@@ -11,12 +11,12 @@ using namespace std;
 
 void write_from_uChar(unsigned char,unsigned char&,int,FILE*);
 
-int is_this_not_a_folder(char*);
+int this_is_not_a_folder(char*);
 long int size_of_the_file(char*);
 void count_in_folder(string,long int*,long int*,long int&);
 
 void write_file_count(int,unsigned char&,int,FILE*);
-void write_file_size(FILE*,long int,unsigned char&,int,FILE*);
+void write_file_size(long int,unsigned char&,int,FILE*);
 void write_file_name(char*,string*,unsigned char&,int&,FILE*);
 void write_the_file_content(FILE*,long int,string*,unsigned char&,int&,FILE*);
 void write_the_folder(string,string*,unsigned char&,int&,FILE*);
@@ -98,7 +98,7 @@ int main(int argc,char *argv[]){
     FILE *original_fp,*compressed_fp;
 
     for(int i=1;i<argc;i++){                    //checks for wrong input
-        if(is_this_not_a_folder(argv[i])){
+        if(this_is_not_a_folder(argv[i])){
             original_fp=fopen(argv[i],"rb");
             if(!original_fp){
                 cout<<argv[i]<<" file does not exist"<<endl<<"Process has been terminated"<<endl;
@@ -124,7 +124,7 @@ int main(int argc,char *argv[]){
             number_name[(unsigned char)(*c)]++;
         }
 
-        if(is_this_not_a_folder(argv[current_file])){
+        if(this_is_not_a_folder(argv[current_file])){
             total_size+=size=size_of_the_file(argv[current_file]);
 
             original_fp=fopen(argv[current_file],"rb");
@@ -390,7 +390,7 @@ int main(int argc,char *argv[]){
 
     for(int current_file=1;current_file<argc;current_file++){
         
-        if(is_this_not_a_folder(argv[current_file])){                   //if current is a file and not a folder
+        if(this_is_not_a_folder(argv[current_file])){                   //if current is a file and not a folder
             original_fp=fopen(argv[current_file],"rb");
             fseek(original_fp,0,SEEK_END);
             size=ftell(original_fp);
@@ -404,7 +404,7 @@ int main(int argc,char *argv[]){
             current_byte|=1;                                                                            //writes fifth
             current_bit_count++;
 
-            write_file_size(original_fp,size,current_byte,current_bit_count,compressed_fp);             //writes sixth
+            write_file_size(size,current_byte,current_bit_count,compressed_fp);             //writes sixth
             write_file_name(argv[current_file],str_arr,current_byte,current_bit_count,compressed_fp);   //writes seventh
             write_the_file_content(original_fp,size,str_arr,current_byte,current_bit_count,compressed_fp);      //writes eighth
             fclose(original_fp);
@@ -482,7 +482,7 @@ void write_file_count(int file_count,unsigned char &current_byte,int current_bit
 
 //This function is writing byte count of current input file to compressed file using 8 bytes
     //It is done like this to make sure that it can work on little, big or middle-endian systems
-void write_file_size(FILE *original_fp,long int size,unsigned char &current_byte,int current_bit_count,FILE *compressed_fp){
+void write_file_size(long int size,unsigned char &current_byte,int current_bit_count,FILE *compressed_fp){
     for(int i=0;i<8;i++){
         write_from_uChar(size%256,current_byte,current_bit_count,compressed_fp);
         size/=256;
@@ -541,7 +541,7 @@ void write_the_file_content(FILE *original_fp,long int size,string *str_arr,unsi
 }
 
 
-int is_this_not_a_folder(char *path){
+int this_is_not_a_folder(char *path){
     DIR *temp=opendir(path);
     if(temp){
         closedir(temp);
@@ -637,8 +637,10 @@ void write_the_folder(string path,string *str_arr,unsigned char &current_byte,in
             if(current->d_name[1]==0)continue;
             if(current->d_name[1]=='.'&&current->d_name[2]==0)continue;
         }
+
         next_path=path+current->d_name;
-        if(is_this_not_a_folder(&next_path[0])){
+        if(this_is_not_a_folder(&next_path[0])){
+
             original_fp=fopen(&next_path[0],"rb");
             fseek(original_fp,0,SEEK_END);
             size=ftell(original_fp);
@@ -652,7 +654,7 @@ void write_the_folder(string path,string *str_arr,unsigned char &current_byte,in
             current_byte|=1;                                                                                    //writes fifth
             current_bit_count++;
 
-            write_file_size(original_fp,size,current_byte,current_bit_count,compressed_fp);                     //writes sixth
+            write_file_size(size,current_byte,current_bit_count,compressed_fp);                     //writes sixth
             write_file_name(current->d_name,str_arr,current_byte,current_bit_count,compressed_fp);                //writes seventh
             write_the_file_content(original_fp,size,str_arr,current_byte,current_bit_count,compressed_fp);      //writes eighth
             fclose(original_fp);
@@ -664,12 +666,12 @@ void write_the_folder(string path,string *str_arr,unsigned char &current_byte,in
             }
             current_byte<<=1;                                                                           //writes fifth
             current_bit_count++;
-
             write_file_name(current->d_name,str_arr,current_byte,current_bit_count,compressed_fp);   //writes seventh
 
             write_the_folder(next_path,str_arr,current_byte,current_bit_count,compressed_fp);
         }
     }
+    closedir(dir);
 
 
 }
