@@ -50,16 +50,17 @@ third (bit groups)
     3.2 (8 bits)            ->  length of the transformation
     3.3 (bits)              ->  transformation code of that character
 
-fourth (2 bytes)            ->  file_count
-    fifth (1 bit)           ->  file or folder information  ->  folder(0) file(1)
+fourth (2 bytes)**          ->  file_count
+    fifth (1 bit)*          ->  file or folder information  ->  folder(0) file(1)
     sixth (8 bytes)         ->  size of current input_file (IF FILE)
     seventh (bit group)
         7.1 (8 bits)        ->  length of current input_file's or folder's name
         7.2 (bits)          ->  transformed version of current input_file's or folder's name
     eighth (a lot of bits)  ->  transformed version of current input_file (IF FILE)
 
-*whenever we see a new folder we will start writing from fourth to seventh
+*whenever we see a new folder we will write seventh then start writing from fourth to seventh
 **groups from fifth to seventh will be written as much as file count in that folder
+    (this is argc-1 for main folder)
 
 
 */
@@ -652,7 +653,7 @@ void write_the_folder(string path,string *str_arr,unsigned char &current_byte,in
             current_bit_count++;
 
             write_file_size(original_fp,size,current_byte,current_bit_count,compressed_fp);                     //writes sixth
-            write_file_name(&next_path[0],str_arr,current_byte,current_bit_count,compressed_fp);                //writes seventh
+            write_file_name(current->d_name,str_arr,current_byte,current_bit_count,compressed_fp);                //writes seventh
             write_the_file_content(original_fp,size,str_arr,current_byte,current_bit_count,compressed_fp);      //writes eighth
             fclose(original_fp);
         }
@@ -664,7 +665,7 @@ void write_the_folder(string path,string *str_arr,unsigned char &current_byte,in
             current_byte<<=1;                                                                           //writes fifth
             current_bit_count++;
 
-            write_file_name(&next_path[0],str_arr,current_byte,current_bit_count,compressed_fp);   //writes seventh
+            write_file_name(current->d_name,str_arr,current_byte,current_bit_count,compressed_fp);   //writes seventh
 
             write_the_folder(next_path,str_arr,current_byte,current_bit_count,compressed_fp);
         }
