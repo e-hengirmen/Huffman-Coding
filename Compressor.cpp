@@ -58,8 +58,8 @@ fourth (2 bytes)**          ->  file_count
         7.2 (bits)          ->  transformed version of current input_file's or folder's name
     eighth (a lot of bits)  ->  transformed version of current input_file (IF FILE)
 
-*whenever we see a new folder we will write seventh then start writing from fourth to seventh
-**groups from fifth to seventh will be written as much as file count in that folder
+*whenever we see a new folder we will write seventh then start writing from fourth to eighth
+**groups from fifth to eighth will be written as much as file count in that folder
     (this is argc-1 for main folder)
 
 
@@ -396,13 +396,15 @@ int main(int argc,char *argv[]){
             size=ftell(original_fp);
             rewind(original_fp);
 
+            //-------------writes fifth--------------
             if(current_bit_count==8){
                 fwrite(&current_byte,1,1,compressed_fp);
                 current_bit_count=0;
             }
             current_byte<<=1;
-            current_byte|=1;                                                                            //writes fifth
+            current_byte|=1;
             current_bit_count++;
+            //---------------------------------------
 
             write_file_size(size,current_byte,current_bit_count,compressed_fp);             //writes sixth
             write_file_name(argv[current_file],str_arr,current_byte,current_bit_count,compressed_fp);   //writes seventh
@@ -410,12 +412,14 @@ int main(int argc,char *argv[]){
             fclose(original_fp);
         }
         else{
+            //-------------writes fifth--------------
             if(current_bit_count==8){
                 fwrite(&current_byte,1,1,compressed_fp);
                 current_bit_count=0;
             }
-            current_byte<<=1;                                                                           //writes fifth
+            current_byte<<=1;
             current_bit_count++;
+            //---------------------------------------
 
             write_file_name(argv[current_file],str_arr,current_byte,current_bit_count,compressed_fp);   //writes seventh
 

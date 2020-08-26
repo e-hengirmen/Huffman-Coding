@@ -4,23 +4,32 @@
 #include <cstring>
 #include <cstdlib>
 #include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 using namespace std;
 
-unsigned char check=0b10000000;
+const unsigned char check=0b10000000;
 
 struct translation{
     translation *zero,*one;
     unsigned char character;
 };
 
+bool this_is_a_file(unsigned char&,int&,FILE*);
 long int read_file_size(unsigned char&,int,FILE*);
+void write_file_name(char*,int,unsigned char&,int&,translation*,FILE*);
+void translate_file(char*,long int,unsigned char&,int&,translation*,FILE*);
+void translate_folder(string,unsigned char&,int&,FILE*,translation*);
+
 
 unsigned char process_8_bits_NUMBER(unsigned char&,int,FILE*);
 void process_n_bits_TO_STRING(unsigned char&,int,int&,FILE*,translation*,unsigned char);
+
+bool file_exists(char*);
+void change_name_if_exists(char*);
+
 void burn_tree(translation*);
 
-void change_name_if_exists(char*);
-bool file_exists(char*);
 
 
 /*          CONTENT TABLE IN ORDER
@@ -35,37 +44,18 @@ bool file_exists(char*);
     3.1 (8 bits)            ->  current character
     3.2 (8 bits)            ->  length of the transformation
     4.3 (bits)              ->  transformation code of that character
-.fourth (2 bytes)           ->  file_count
+
+.fourth (2 bytes)**         ->  file_count
     .fifth (1 bit)*         ->  file or folder information  ->  folder(0) file(1)
     .sixth (8 bytes)        ->  size of current file (IF FILE)
     .seventh (bit group)
         7.1 (8 bits)        ->  length of current file's or folder's name
         7.2 (bits)          ->  translate and write current file's or folder's name
+    .eighth (a lot of bits)  ->  translate and write current file (IF FILE)
 
-
-    .seventh (a lot of bits)->  translate and write current file
-
+*whenever we see a new folder we will write seventh then start writing from fourth to eighth
 **groups from fourth to sixth will be written as much as the file count
 */
-
-/*
-first (one byte)            ->  letter_count
-second (bit group)
-    2.1 (one byte)          ->  password_length
-    2.2 (bytes)             ->  password (if password exists)
-third (bit groups)
-    3.1 (8 bits)            ->  current character
-    3.2 (8 bits)            ->  length of the transformation
-    3.3 (bits)              ->  transformation code of that character
-fourth (2 bytes)**          ->  file_count
-
-    fifth (1 bit)*          ->  file or folder information  ->  folder(0) file(1)
-    sixth (8 bytes)         ->  size of current input_file (IF FILE)
-    seventh (bit group)
-        7.1 (8 bits)        ->  length of current input_file's or folder's name
-        7.2 (bits)          ->  transformed version of current input_file's or folder's name
-    eighth (a lot of bits)  ->  transformed version of current input_file (IF FILE)
-    */
 
 
 
@@ -141,39 +131,49 @@ int main(int argc,char *argv[]){
 
 
 
+
+
+
+
+
+
+
+
+
+
     // ---------reads .fourth----------
+        //reads how many folders/files the program will create inside the current folder
     int file_count;
     file_count=process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);
-    file_count+=256*process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);;
+    file_count+=256*process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);
     // --------------------------------
-
-
-
-
-
-
-
 
 
 
     for(int current_file=0;current_file<file_count;current_file++){
 
         if(this_is_a_file(current_byte,current_bit_count,fp_compressed)){   //checks .fifth
-        long int size=read_file_size(current_byte,current_bit_count,fp_compressed);  // reads .sixth
+            long int size=read_file_size(current_byte,current_bit_count,fp_compressed);  // reads .sixth
 
-        //---------------reads .seventh---------------------
-        int file_name_length=process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);
-        char newfile[file_name_length+4];
-        write_file_name(newfile,file_name_length,current_byte,current_bit_count,root,fp_compressed);
-        change_name_if_exists(newfile);
-        //--------------------------------------------------
+            //---------------translates .seventh---------------------
+            int file_name_length=process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);
+            char newfile[file_name_length+4];
+            write_file_name(newfile,file_name_length,current_byte,current_bit_count,root,fp_compressed);
+            change_name_if_exists(newfile);
+            //--------------------------------------------------
 
-        translate_file(newfile,size,current_byte,current_bit_count,root,fp_compressed); //reads .eighth
-
-
+            translate_file(newfile,size,current_byte,current_bit_count,root,fp_compressed); //translates .eighth
         }
         else{   //if this is a folder
-            //TODO
+            //---------------translates .seventh---------------------
+            int file_name_length=process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);
+            char newfile[file_name_length+4];
+            write_file_name(newfile,file_name_length,current_byte,current_bit_count,root,fp_compressed);
+            change_name_if_exists(newfile);
+            //--------------------------------------------------
+            mkdir(newfile,0777);
+            string folder_name=newfile;
+            translate_folder(folder_name,current_byte,current_bit_count,fp_compressed,root);
         }
     }
 
@@ -182,6 +182,60 @@ int main(int argc,char *argv[]){
     burn_tree(root);
     cout<<"Decompression is complete"<<endl;
 }
+
+
+
+
+
+
+void translate_folder(string path,unsigned char &current_byte,int &current_bit_count,FILE *fp_compressed,translation *root){
+    path+='/';
+    string new_path;
+    
+    // ---------reads .fourth----------
+        //reads how many folders/files the program will create inside the current folder
+    int file_count;
+    file_count=process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);
+    file_count+=256*process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);
+    // --------------------------------
+
+
+
+    for(int current_file=0;current_file<file_count;current_file++){
+        if(this_is_a_file(current_byte,current_bit_count,fp_compressed)){   //checks .fifth
+            long int size=read_file_size(current_byte,current_bit_count,fp_compressed);  // reads .sixth
+
+            //---------------translates .seventh---------------------
+            int file_name_length=process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);
+            char newfile[file_name_length+4];
+            write_file_name(newfile,file_name_length,current_byte,current_bit_count,root,fp_compressed);
+            //--------------------------------------------------
+
+            new_path=path+newfile;
+            translate_file(&new_path[0],size,current_byte,current_bit_count,root,fp_compressed); //translates .eighth
+        }
+        else{   //if this is a folder
+            //---------------translates .seventh---------------------
+            int file_name_length=process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);
+            char newfile[file_name_length+4];
+            write_file_name(newfile,file_name_length,current_byte,current_bit_count,root,fp_compressed);
+            //--------------------------------------------------
+            new_path=path+newfile;
+            mkdir(&new_path[0],0777);
+            translate_folder(new_path,current_byte,current_bit_count,fp_compressed,root);
+        }
+    }
+
+}
+
+
+// .fourth (2 bytes)**         ->  file_count
+//     .fifth (1 bit)*         ->  file or folder information  ->  folder(0) file(1)
+//     .sixth (8 bytes)        ->  size of current file (IF FILE)
+//     .seventh (bit group)
+//         7.1 (8 bits)        ->  length of current file's or folder's name
+//         7.2 (bits)          ->  translate and write current file's or folder's name
+//     .eigth (a lot of bits)  ->  translate and write current file (IF FILE)
 
 
 
@@ -208,7 +262,7 @@ void burn_tree(translation *node){          // this function is used for dealloc
 void process_n_bits_TO_STRING(unsigned char &current_byte,int n,int &current_bit_count,FILE *fp_read,translation *node,unsigned char uChar){
     for(int i=0;i<n;i++){
         if(current_bit_count==0){
-            fread(current_byte,1,1,fp_read);
+            fread(&current_byte,1,1,fp_read);
             current_bit_count=8;
         }
 
