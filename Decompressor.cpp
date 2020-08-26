@@ -54,7 +54,7 @@ void burn_tree(translation*);
     .eighth (a lot of bits)  ->  translate and write current file (IF FILE)
 
 *whenever we see a new folder we will write seventh then start writing from fourth to eighth
-**groups from fourth to sixth will be written as much as the file count
+**groups from fifth to eighth will be written as much as the file count
 */
 
 
@@ -152,7 +152,8 @@ int main(int argc,char *argv[]){
 
     for(int current_file=0;current_file<file_count;current_file++){
 
-        if(this_is_a_file(current_byte,current_bit_count,fp_compressed)){   //checks .fifth
+        if(this_is_a_file(current_byte,current_bit_count,fp_compressed)){   // reads .fifth
+
             long int size=read_file_size(current_byte,current_bit_count,fp_compressed);  // reads .sixth
 
             //---------------translates .seventh---------------------
@@ -171,7 +172,7 @@ int main(int argc,char *argv[]){
             write_file_name(newfile,file_name_length,current_byte,current_bit_count,root,fp_compressed);
             change_name_if_exists(newfile);
             //--------------------------------------------------
-            mkdir(newfile,0777);
+            mkdir(newfile,0755);
             string folder_name=newfile;
             translate_folder(folder_name,current_byte,current_bit_count,fp_compressed,root);
         }
@@ -185,9 +186,10 @@ int main(int argc,char *argv[]){
 
 
 
-
-
-
+// translate_folder function is used for creating files and folders inside given path
+// by using information from the compressed file.
+    // whenever it creates another file it will recursively call itself with path of the newly created file 
+    // and in this way translates the compressed file.
 void translate_folder(string path,unsigned char &current_byte,int &current_bit_count,FILE *fp_compressed,translation *root){
     path+='/';
     string new_path;
@@ -221,32 +223,12 @@ void translate_folder(string path,unsigned char &current_byte,int &current_bit_c
             write_file_name(newfile,file_name_length,current_byte,current_bit_count,root,fp_compressed);
             //--------------------------------------------------
             new_path=path+newfile;
-            mkdir(&new_path[0],0777);
+            mkdir(&new_path[0],0755);
             translate_folder(new_path,current_byte,current_bit_count,fp_compressed,root);
         }
     }
 
 }
-
-
-// .fourth (2 bytes)**         ->  file_count
-//     .fifth (1 bit)*         ->  file or folder information  ->  folder(0) file(1)
-//     .sixth (8 bytes)        ->  size of current file (IF FILE)
-//     .seventh (bit group)
-//         7.1 (8 bits)        ->  length of current file's or folder's name
-//         7.2 (bits)          ->  translate and write current file's or folder's name
-//     .eigth (a lot of bits)  ->  translate and write current file (IF FILE)
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -377,7 +359,7 @@ long int read_file_size(unsigned char &current_byte,int current_bit_count,FILE *
     // does not affect the process and that is why we are processing size information like this
 }
 
-// //Decodes current file's name and writes file name to newfile char array
+// Decodes current file's name and writes file name to newfile char array
 void write_file_name(char *newfile,int file_name_length,unsigned char &current_byte,int &current_bit_count,translation *root,FILE *fp_compressed){
     translation *node;
     newfile[file_name_length]=0;
@@ -401,9 +383,11 @@ void write_file_name(char *newfile,int file_name_length,unsigned char &current_b
         }
 }
 
+
+
+// This function translates compressed file from info that is now stored in the translation tree
+    // then writes it to a newly created file
 void translate_file(char *path,long int size,unsigned char &current_byte,int &current_bit_count,translation *root,FILE *fp_compressed){
-    // This code block translates compressed file from info that is now stored in the translation tree
-        // then writes it to a newly created file
     translation *node;
     FILE *fp_new=fopen(path,"wb");
     for(long int i=0;i<size;i++){

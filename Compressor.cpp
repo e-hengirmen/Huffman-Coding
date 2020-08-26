@@ -62,7 +62,6 @@ fourth (2 bytes)**          ->  file_count
 **groups from fifth to eighth will be written as much as file count in that folder
     (this is argc-1 for main folder)
 
-1 2 3 4 5 6      7.2 8
 */
 
 
@@ -94,7 +93,7 @@ int main(int argc,char *argv[]){
     string scompressed;
     FILE *original_fp,*compressed_fp;
 
-    for(int i=1;i<argc;i++){                    //checks for wrong input
+    for(int i=1;i<argc;i++){                    //checking for wrong input
         if(this_is_not_a_folder(argv[i])){
             original_fp=fopen(argv[i],"rb");
             if(!original_fp){
@@ -166,7 +165,7 @@ int main(int argc,char *argv[]){
             }
     }
     sort(array,array+letter_count,erselcompare0);
-        // creating the base of translation array(and then sorting them by ascending frequincies)
+        // creating the base of translation array(and then sorting them by ascending frequincies
             // this array of type 'ersel' will not be used after calculating transformed versions of every unique byte
             // instead its info will be written in a new string array called str_arr 
     //---------------------------------------------
@@ -226,6 +225,8 @@ int main(int argc,char *argv[]){
             // After we are done with these nodes they will become childrens of created nodes
             // and they will be passed so that they wont be used in this process again.
     //---------------------------------------------
+
+
     
     //-------------------5-------------------------
     for(e=array+letter_count*2-2;e>array-1;e--){
@@ -347,15 +348,11 @@ int main(int argc,char *argv[]){
          total_bits+=len*(e->number);
     }
     if(total_bits%8){
-        total_bits=(total_bits/8+1)*8;
-        
+        total_bits=(total_bits/8+1)*8;        
         // from this point on total bits doesnt represent total bits
         // instead it represents 8*number_of_bytes we are gonna use on our compressed file
     }
-    /* Above loop of the code is doing 2 in this order
-    1- It determines number of bits that we are gonna write to the compressed file
-        (this number only represents number of bytes thats going to be translated it doesn't include translation script
-    2-It writes the translation script into [name of the original].compressed file and the str_arr array */
+    // Above loop writes the translation script into [argv[1]].compressed file and the str_arr array
     //----------------------------------------
 
 
@@ -386,7 +383,7 @@ int main(int argc,char *argv[]){
 
     for(int current_file=1;current_file<argc;current_file++){
         
-        if(this_is_not_a_folder(argv[current_file])){                   //if current is a file and not a folder
+        if(this_is_not_a_folder(argv[current_file])){   //if current is a file and not a folder
             original_fp=fopen(argv[current_file],"rb");
             fseek(original_fp,0,SEEK_END);
             size=ftell(original_fp);
@@ -407,7 +404,8 @@ int main(int argc,char *argv[]){
             write_the_file_content(original_fp,size,str_arr,current_byte,current_bit_count,compressed_fp);      //writes eighth
             fclose(original_fp);
         }
-        else{
+        else{   //if current is a folder instead
+
             //-------------writes fifth--------------
             if(current_bit_count==8){
                 fwrite(&current_byte,1,1,compressed_fp);
@@ -428,7 +426,7 @@ int main(int argc,char *argv[]){
 
 
 
-    if(current_bit_count==8){
+    if(current_bit_count==8){      // here we are writing the last byte of the file
         fwrite(&current_byte,1,1,compressed_fp);
     }
     else{
@@ -440,20 +438,6 @@ int main(int argc,char *argv[]){
     cout<<"Compression is complete"<<endl;
     
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -539,7 +523,6 @@ void write_the_file_content(FILE *original_fp,long int size,string *str_arr,unsi
         fread(x_p,1,1,original_fp);
     }
 }
-
 
 int this_is_not_a_folder(char *path){
     DIR *temp=opendir(path);
