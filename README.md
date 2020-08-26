@@ -35,11 +35,3 @@ chmod u+x Huffman.sh
 ```
 ./extract {{filename}}
 ```
-## Shortcomings
-* Compressor.cpp does not compress folders
-
-## TODO list
-* ~~Finish decompressor~~(DONE)
-* ~~Improve documentation~~(DONE)
-* ~~Make Compressor.cpp compress multiple files~~(DONE)
-* Make Compressor.cpp compress folders
