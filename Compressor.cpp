@@ -13,7 +13,7 @@ void write_from_uChar(unsigned char,unsigned char&,int,FILE*);
 
 int this_is_not_a_folder(char*);
 long int size_of_the_file(char*);
-void count_in_folder(string,long int*,long int*,long int&);
+void count_in_folder(string,long int*,long int&,long int&);
 
 void write_file_count(int,unsigned char&,int,FILE*);
 void write_file_size(long int,unsigned char&,int,FILE*);
@@ -62,7 +62,7 @@ fourth (2 bytes)**          ->  file_count
 **groups from fifth to eighth will be written as much as file count in that folder
     (this is argc-1 for main folder)
 
-
+1 2 3 4 5 6      7.2 8
 */
 
 
@@ -80,17 +80,14 @@ bool erselcompare0(ersel a,ersel b){
 
 
 int main(int argc,char *argv[]){
-    long int number[256],number_name[256];
-    long int bits=0,total_bits=0;
+    long int number[256];
+    long int total_bits=0;
     int letter_count=0;
     if(argc==1){
         cout<<"Missing file name"<<endl<<"try './archive {{file_name}}'"<<endl;
         return 0;
     }
     for(long int *i=number;i<number+256;i++){                       
-        *i=0;
-    }
-    for(long int *i=number_name;i<number_name+256;i++){                       
         *i=0;
     }
     
@@ -117,15 +114,16 @@ int main(int argc,char *argv[]){
     unsigned char *x_p,x;                  //these are temp variables to take input from the file
     x_p=&x;
     long int total_size=0,size;
+    total_bits+=16+9*(argc-1);
     for(int current_file=1;current_file<argc;current_file++){
 
         for(char *c=argv[current_file];*c;c++){        //counting usage frequency of bytes on the file name (or folder name)
             number[(unsigned char)(*c)]++;
-            number_name[(unsigned char)(*c)]++;
         }
 
         if(this_is_not_a_folder(argv[current_file])){
             total_size+=size=size_of_the_file(argv[current_file]);
+            total_bits+=64;
 
             original_fp=fopen(argv[current_file],"rb");
             fread(x_p,1,1,original_fp);
@@ -138,7 +136,7 @@ int main(int argc,char *argv[]){
         }
         else{
             string temp=argv[current_file];
-            count_in_folder(temp,number,number_name,total_size);
+            count_in_folder(temp,number,total_size,total_bits);
         }        
     }
 
@@ -148,8 +146,8 @@ int main(int argc,char *argv[]){
 			}
     }
         // This code block counts number of times that all of the unique bytes is used on the files and file names and folder names
-        // and stores that info in 'number' and 'number_names' arrays
-            // after this code block progra  checks the 'number' and 'number_names' arrays 
+        // and stores that info in 'number' array
+            // after this code block, program checks the 'number' array
             //and writes the number of unique byte count to 'letter_count' variable
     //---------------------------------------------
 
@@ -262,6 +260,7 @@ int main(int argc,char *argv[]){
     unsigned char current_byte;
     //--------------writes first--------------
     fwrite(&letter_count,1,1,compressed_fp);
+    total_bits+=8;
     //----------------------------------------
 
 
@@ -345,14 +344,11 @@ int main(int argc,char *argv[]){
            str_pointer++;
         }
         
-         bits+=len*(e->number-number_name[e->character]);
-         total_bits+=len*number_name[e->character];
-    }           
-    total_bits+=bits;
-    total_bits+=(argc-1)*8;          //for 6.1
-    unsigned char bits_in_last_byte=total_bits%8;
-    if(bits_in_last_byte){
+         total_bits+=len*(e->number);
+    }
+    if(total_bits%8){
         total_bits=(total_bits/8+1)*8;
+        
         // from this point on total bits doesnt represent total bits
         // instead it represents 8*number_of_bytes we are gonna use on our compressed file
     }
@@ -567,36 +563,37 @@ long int size_of_the_file(char *path){
 
 // This function counts usage frequency of bytes inside a folder
     // only give folder path as input
-void count_in_folder(string path,long int *number,long int *number_name,long int &total_size){
+void count_in_folder(string path,long int *number,long int &total_size,long int &total_bits){
     FILE *original_fp;
     path+='/';
     DIR *dir=opendir(&path[0]),*next_dir;
     string next_path;
+    total_size+=4096;
+    total_bits+=16; //for file_count
     struct dirent *current;
     while((current=readdir(dir))){
         if(current->d_name[0]=='.'){
             if(current->d_name[1]==0)continue;
             if(current->d_name[1]=='.'&&current->d_name[2]==0)continue;
         }
+        total_bits+=9;
 
         for(char *c=current->d_name;*c;c++){        //counting usage frequency of bytes on the file name (or folder name)
             number[(unsigned char)(*c)]++;
-            number_name[(unsigned char)(*c)]++;
         }
 
-        // all_files_and_folders+=current->d_name;     //current->d_name includes file's name
-        // all_files_and_folders+=" ";                 //
         next_path=path+current->d_name;
 
         if((next_dir=opendir(&next_path[0]))){
             closedir(next_dir);
-            count_in_folder(next_path,number,number_name,total_size);
+            count_in_folder(next_path,number,total_size,total_bits);
         }
         else{
             long int size;
             unsigned char *x_p,x;
             x_p=&x;
             total_size+=size=size_of_the_file(&next_path[0]);
+            total_bits+=64;
 
             //--------------------2------------------------
             original_fp=fopen(&next_path[0],"rb");
