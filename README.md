@@ -17,23 +17,23 @@ The Decompressor first reads translation info and creates a binary tree from it.
 
 1. Run below script using your favourate shell:
 ```
-    chmod u+x Huffman.sh
-    ./Huffman.sh
+chmod u+x Huffman.sh
+./Huffman.sh
 ```
 
 2. After running the script, you can use archive command below to compress the file you want:
 
 * To compress one file use:
 ```
-    ./archive {{filename}}
+./archive {{filename}}
 ```
 * To compress multiple files use:
 ```
-    ./archive {{filename1}} {{filename2}} ...
+./archive {{filename1}} {{filename2}} ...
 ```
 3.  And to decompress a compressed file, use the extract command below:
 ```
-    ./extract {{filename}}
+./extract {{filename}}
 ```
 ## Shortcomings
 * Compressor.cpp does not compress folders
