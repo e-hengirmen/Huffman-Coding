@@ -114,7 +114,7 @@ int main(int argc,char *argv[]){
 
 
     //----------------reads .third---------------------
-        // and stores transformation info into translation tree for later use
+        // and stores transformation info into binary translation tree for later use
     unsigned char current_byte=0,current_character;
     int current_bit_count=0,len;
     translation *root=(translation*)malloc(sizeof(translation));
@@ -142,17 +142,20 @@ int main(int argc,char *argv[]){
 
 
     // ---------reads .fourth----------
-        //reads how many folders/files the program will create inside the current folder
+        //reads how many folders/files the program will create inside the main folder
     int file_count;
     file_count=process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);
     file_count+=256*process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);
+        // File count was written to the compressed file from least significiant byte 
+        // to most significiant byte to make sure system's endianness
+        // does not affect the process and that is why we are processing size information like this
     // --------------------------------
 
 
 
     for(int current_file=0;current_file<file_count;current_file++){
 
-        if(this_is_a_file(current_byte,current_bit_count,fp_compressed)){   // reads .fifth
+        if(this_is_a_file(current_byte,current_bit_count,fp_compressed)){   // reads .fifth and goes inside if this is a file
 
             long int size=read_file_size(current_byte,current_bit_count,fp_compressed);  // reads .sixth
 
@@ -231,16 +234,18 @@ void translate_folder(string path,unsigned char &current_byte,int &current_bit_c
 }
 
 
-
-void burn_tree(translation *node){          // this function is used for deallocating translation tree
+// burn_tree function is used for deallocating translation tree
+void burn_tree(translation *node){
     if(node->zero)burn_tree(node->zero);
     if(node->one)burn_tree(node->one);
     free(node);
 }
 
+
+
 // process_n_bits_TO_STRING function reads n successive bits from the compressed file
-// and stores it in a leaf of the translation tree
-// after creating that leaf and sometimes nodes that are binding that leaf to the tree
+// and stores it in a leaf of the translation tree,
+// after creating that leaf and sometimes after creating nodes that are binding that leaf to the tree.
 void process_n_bits_TO_STRING(unsigned char &current_byte,int n,int &current_bit_count,FILE *fp_read,translation *node,unsigned char uChar){
     for(int i=0;i<n;i++){
         if(current_bit_count==0){
@@ -272,7 +277,10 @@ void process_n_bits_TO_STRING(unsigned char &current_byte,int n,int &current_bit
     node->character=uChar;
 }
 
+
+
 // process_8_bits_NUMBER reads 8 successive bits from compressed file
+    //(does not have to be in the same byte)
 // and returns it in unsigned char form
 unsigned char process_8_bits_NUMBER(unsigned char &current_byte,int current_bit_count,FILE *fp_read){
     unsigned char val,temp_byte;
@@ -281,6 +289,8 @@ unsigned char process_8_bits_NUMBER(unsigned char &current_byte,int current_bit_
     current_byte=temp_byte<<8-current_bit_count;
     return val;
 }
+
+
 
 //checks if next input is either a file or a folder
     //returns 1 if it is a file
@@ -326,6 +336,8 @@ void change_name_if_exists(char *name){
     }
 }
 
+
+
 // checks if the file or folder exists
 bool file_exists(char *name){
     FILE *fp=fopen(name,"rb");
@@ -358,6 +370,8 @@ long int read_file_size(unsigned char &current_byte,int current_bit_count,FILE *
     // to the most significiant byte to make sure system's endianness
     // does not affect the process and that is why we are processing size information like this
 }
+
+
 
 // Decodes current file's name and writes file name to newfile char array
 void write_file_name(char *newfile,int file_name_length,unsigned char &current_byte,int &current_bit_count,translation *root,FILE *fp_compressed){

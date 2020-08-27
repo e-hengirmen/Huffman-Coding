@@ -109,6 +109,10 @@ int main(int argc,char *argv[]){
 
 
     //------------------1 and 2--------------------
+        // This code block counts number of times that all of the unique bytes is used on the files and file names and folder names
+        // and stores that info in 'number' array
+            // after this code block, program checks the 'number' array
+            //and writes the number of unique byte count to 'letter_count' variable
 
     unsigned char *x_p,x;                  //these are temp variables to take input from the file
     x_p=&x;
@@ -144,15 +148,14 @@ int main(int argc,char *argv[]){
 			letter_count++;
 			}
     }
-        // This code block counts number of times that all of the unique bytes is used on the files and file names and folder names
-        // and stores that info in 'number' array
-            // after this code block, program checks the 'number' array
-            //and writes the number of unique byte count to 'letter_count' variable
     //---------------------------------------------
 
 
 
     //--------------------3------------------------
+        // creating the base of translation array(and then sorting them by ascending frequincies
+        // this array of type 'ersel' will not be used after calculating transformed versions of every unique byte
+        // instead its info will be written in a new string array called str_arr 
     ersel array[letter_count*2-1];
     ersel *e=array;
     for(long int *i=number;i<number+256;i++){                         
@@ -165,9 +168,6 @@ int main(int argc,char *argv[]){
             }
     }
     sort(array,array+letter_count,erselcompare0);
-        // creating the base of translation array(and then sorting them by ascending frequincies
-            // this array of type 'ersel' will not be used after calculating transformed versions of every unique byte
-            // instead its info will be written in a new string array called str_arr 
     //---------------------------------------------
     
                    
@@ -630,13 +630,15 @@ void write_the_folder(string path,string *str_arr,unsigned char &current_byte,in
             size=ftell(original_fp);
             rewind(original_fp);
 
+            //-------------writes fifth--------------
             if(current_bit_count==8){
                 fwrite(&current_byte,1,1,compressed_fp);
                 current_bit_count=0;
             }
             current_byte<<=1;
-            current_byte|=1;                                                                                    //writes fifth
+            current_byte|=1;
             current_bit_count++;
+            //---------------------------------------
 
             write_file_size(size,current_byte,current_bit_count,compressed_fp);                     //writes sixth
             write_file_name(current->d_name,str_arr,current_byte,current_bit_count,compressed_fp);                //writes seventh
@@ -644,12 +646,16 @@ void write_the_folder(string path,string *str_arr,unsigned char &current_byte,in
             fclose(original_fp);
         }
         else{   // if current is a folder
+
+            //-------------writes fifth--------------
             if(current_bit_count==8){
                 fwrite(&current_byte,1,1,compressed_fp);
                 current_bit_count=0;
             }
-            current_byte<<=1;                                                                           //writes fifth
+            current_byte<<=1;
             current_bit_count++;
+            //---------------------------------------
+
             write_file_name(current->d_name,str_arr,current_byte,current_bit_count,compressed_fp);   //writes seventh
 
             write_the_folder(next_path,str_arr,current_byte,current_bit_count,compressed_fp);
