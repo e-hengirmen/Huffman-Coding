@@ -1,8 +1,16 @@
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
-# Huffman_Coding
+<h1 align="center">Huffman Coding</h1>
+
 Self-made C++ file archiver and archive extractor programs based on Huffman's lossless compression algorithm
+
+## Table of Contents
+
+* [How does it work](#how-does-it-work)
+  * [Compressor](#compressor)
+  * [Decompressor](#decompressor)
+* [How does one use it?](#how-does-one-use-it)
 
 ## How does it work?
 ### Compressor:
