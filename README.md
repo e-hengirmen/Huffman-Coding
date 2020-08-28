@@ -10,7 +10,7 @@
       alt="MIT License" />
   </a>
   <a href="https://www.linkedin.com/in/ersel-hengirmen/">
-    <img src="https://img.shields.io/badge/-LinkedIn-black.svg?style=plastic-square&logo=linkedin&colorA=555&colorB=292"
+    <img src="https://img.shields.io/badge/-LinkedIn-black.svg?style=plastic-square&logo=linkedin&colorA=555"
       alt="MIT License" />
   </a>
 </p>
