@@ -14,7 +14,7 @@ The `Decompressor` is a 1-pass program:
 The `Decompressor` first reads translation info and creates a binary tree from it. After this process is done, it uses this binary translation tree to decode the rest of the file
 
 ## How does one use it?
-1. Compile with make using your favourate shell:
+1. Compile with `make` using your favourate shell:
 ```
 make all
 ```
