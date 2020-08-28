@@ -6,11 +6,11 @@
 
 <p align="center">
   <a href="https://github.com/e-hengirmen/Huffman_Coding/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=flat-square"
+    <img src="https://img.shields.io/github/license/e-hengirmen/Huffman_Coding"
       alt="MIT License" />
   </a>
   <a href="https://www.linkedin.com/in/ersel-hengirmen/">
-    <img src="https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555"
+    <img src="https://img.shields.io/badge/-LinkedIn-black.svg?style=plastic-square&logo=linkedin&colorA=555&colorB=292"
       alt="MIT License" />
   </a>
 </p>
