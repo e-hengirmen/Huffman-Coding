@@ -32,25 +32,24 @@ If you dont know how Huffman's algorithm works I really recommend you to check t
 https://en.wikipedia.org/wiki/Huffman_coding#Basic_technique
 
 1-Size information
-2-Byte count by unique byte and unique byte count
-3-Creating the base of translation array
-4-Creating the whole tree inside the array by weight distribution
-5-adding strings from top to bottom
+2-Counting usage frequency of unique bytes and unique byte count
+3-Creating the base of the translation array
+4-Creating the translation tree inside the translation array by weight distribution
+5-adding strings from top to bottom to create translated versions of unique bytes
 
 ---------PART 2-CREATION OF COMPRESSED FILE-----------
-    Original File will be compressed in below order
-
+    Compressed File's structure had been documented below
 
 first (one byte)            ->  letter_count
 second (bit group)
     2.1 (one byte)          ->  password_length
     2.2 (bytes)             ->  password (if password exists)
 third (bit groups)
-    3.1 (8 bits)            ->  current character
+    3.1 (8 bits)            ->  current unique byte
     3.2 (8 bits)            ->  length of the transformation
-    3.3 (bits)              ->  transformation code of that character
+    3.3 (bits)              ->  transformation code of that unique byte
 
-fourth (2 bytes)**          ->  file_count
+fourth (2 bytes)**          ->  file_count (inside the current folder)
     fifth (1 bit)*          ->  file or folder information  ->  folder(0) file(1)
     sixth (8 bytes)         ->  size of current input_file (IF FILE)
     seventh (bit group)
@@ -60,7 +59,7 @@ fourth (2 bytes)**          ->  file_count
 
 *whenever we see a new folder we will write seventh then start writing from fourth to eighth
 **groups from fifth to eighth will be written as much as file count in that folder
-    (this is argc-1 for main folder)
+    (this is argument_count-1(argc-1) for the main folder)
 
 */
 
@@ -112,7 +111,7 @@ int main(int argc,char *argv[]){
         // This code block counts number of times that all of the unique bytes is used on the files and file names and folder names
         // and stores that info in 'number' array
             // after this code block, program checks the 'number' array
-            //and writes the number of unique byte count to 'letter_count' variable
+            //and writes the number of unique bytes count to 'letter_count' variable
 
     unsigned char *x_p,x;                  //these are temp variables to take input from the file
     x_p=&x;
@@ -120,7 +119,7 @@ int main(int argc,char *argv[]){
     total_bits+=16+9*(argc-1);
     for(int current_file=1;current_file<argc;current_file++){
 
-        for(char *c=argv[current_file];*c;c++){        //counting usage frequency of bytes on the file name (or folder name)
+        for(char *c=argv[current_file];*c;c++){        //counting usage frequency of unique bytes on the file name (or folder name)
             number[(unsigned char)(*c)]++;
         }
 
@@ -130,7 +129,7 @@ int main(int argc,char *argv[]){
 
             original_fp=fopen(argv[current_file],"rb");
             fread(x_p,1,1,original_fp);
-            for(long int j=0;j<size;j++){    //counting usage frequency of bytes inside the file
+            for(long int j=0;j<size;j++){    //counting usage frequency of unique bytes inside the file
                 number[x]++;
                 fread(x_p,1,1,original_fp);
             }
@@ -153,7 +152,7 @@ int main(int argc,char *argv[]){
 
 
     //--------------------3------------------------
-        // creating the base of translation array(and then sorting them by ascending frequincies
+        // creating the base of translation array(and then sorting them by ascending frequencies
         // this array of type 'ersel' will not be used after calculating transformed versions of every unique byte
         // instead its info will be written in a new string array called str_arr 
     ersel array[letter_count*2-1];
@@ -317,7 +316,7 @@ int main(int argc,char *argv[]){
     unsigned char len,current_character;
     string str_arr[256];
     for(e=array;e<array+letter_count;e++){
-        str_arr[(e->character)]=e->bit;     //we are putting the transformation string to str_arr array to make the process more time efficient
+        str_arr[(e->character)]=e->bit;     //we are putting the transformation string to str_arr array to make the compression process more time efficient
         len=e->bit.length();
         current_character=e->character;
 
@@ -352,7 +351,7 @@ int main(int argc,char *argv[]){
         // from this point on total bits doesnt represent total bits
         // instead it represents 8*number_of_bytes we are gonna use on our compressed file
     }
-    // Above loop writes the translation script into [argv[1]].compressed file and the str_arr array
+    // Above loop writes the translation script into compressed file and the str_arr array
     //----------------------------------------
 
 
@@ -435,13 +434,14 @@ int main(int argc,char *argv[]){
     }
 
     fclose(compressed_fp);
+    cout<<endl<<"Created compressed file: "<<scompressed<<endl;
     cout<<"Compression is complete"<<endl;
     
 }
 
 
 
-//below function is used for writing the uChar to fp_write file
+//below function is used for writing the uChar to compressed file
     //It does not write it directly as one byte instead it mixes uChar and current byte, writes 8 bits of it 
     //and puts the rest to curent byte for later use
 void write_from_uChar(unsigned char uChar,unsigned char &current_byte,int current_bit_count,FILE *fp_write){
