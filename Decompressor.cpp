@@ -41,9 +41,9 @@ void burn_tree(translation*);
     2.1 (one byte)          ->  password_length
     2.2 (bytes)             ->  password (if password exists)
 .third (bit groups)
-    3.1 (8 bits)            ->  current character
+    3.1 (8 bits)            ->  current unique byte
     3.2 (8 bits)            ->  length of the transformation
-    4.3 (bits)              ->  transformation code of that character
+    4.3 (bits)              ->  transformation code of that unique byte
 
 .fourth (2 bytes)**         ->  file_count
     .fifth (1 bit)*         ->  file or folder information  ->  folder(0) file(1)
@@ -51,9 +51,10 @@ void burn_tree(translation*);
     .seventh (bit group)
         7.1 (8 bits)        ->  length of current file's or folder's name
         7.2 (bits)          ->  translate and write current file's or folder's name
-    .eighth (a lot of bits)  ->  translate and write current file (IF FILE)
+    .eighth (a lot of bits) ->  translate and write current file (IF FILE)
 
-*whenever we see a new folder we will write seventh then start writing from fourth to eighth
+*whenever we see a new folder we will write seventh then 
+    start writing the files(and folders) inside the current folder from fourth to eighth
 **groups from fifth to eighth will be written as much as the file count
 */
 
@@ -86,6 +87,7 @@ int main(int argc,char *argv[]){
 
 
     //-----------------reads .second--------------------
+        // this code block reads and checks the password
     fread(&password_length,1,1,fp_compressed);
     if(password_length){
         char real_password[password_length+1],password_input[257];
@@ -108,7 +110,6 @@ int main(int argc,char *argv[]){
         }
         cout<<"Correct Password"<<endl;
     }
-        // this code block reads and checks the password
     //--------------------------------------------------
 
 
@@ -142,7 +143,7 @@ int main(int argc,char *argv[]){
 
 
     // ---------reads .fourth----------
-        //reads how many folders/files the program will create inside the main folder
+        //reads how many folders/files the program is going to create inside the main folder
     int file_count;
     file_count=process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);
     file_count+=256*process_8_bits_NUMBER(current_byte,current_bit_count,fp_compressed);
