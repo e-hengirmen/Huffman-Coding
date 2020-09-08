@@ -58,7 +58,7 @@ make all
 ```
 ## Versions
 * [Version 2.0(Latest Version)](https://github.com/e-hengirmen/Huffman_Coding/tree/Version-2.0)
-  * Can compress any file or folder
+  * Can compress any file and folder you want
   * Useful for educative purposes
   * Uses more functionalized structure
 * [Version 1.0](https://github.com/e-hengirmen/Huffman_Coding/tree/Version-1.0) 
