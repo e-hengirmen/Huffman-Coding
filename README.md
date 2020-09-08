@@ -22,8 +22,10 @@ Self-made C++ **file archiver** and **archive extractor** programs based on Huff
   * [Compressor](#compressor)
   * [Decompressor](#decompressor)
 * [How does one use it?](#how-does-one-use-it)
+* [Versions](#versions)
 
 ## How does it work?
+_You can check out documentation inside [Compressor.cpp](https://github.com/e-hengirmen/Huffman_Coding/blob/master/Compressor.cpp) and [Decompressor.cpp](https://github.com/e-hengirmen/Huffman_Coding/blob/master/Decompressor.cpp) files to help you understand Huffman's algorithm's inner workings._
 ### Compressor:
 The `Compressor` is a 2-pass program. What I mean by this is that the `Compressor` reads input files twice.
 
@@ -54,3 +56,16 @@ make all
 ```
 ./extract {{filename}}
 ```
+## Versions
+* [Version 2.0(Latest Version)](https://github.com/e-hengirmen/Huffman_Coding/tree/Version-2.0)
+  * Can compress any file or folder
+  * Useful for educative purposes
+  * Uses more functionalized structure
+* [Version 1.0](https://github.com/e-hengirmen/Huffman_Coding/tree/Version-1.0) 
+  * Compresses multiple files 
+  * Version 1.0 can not be used to compress folders
+* [Version 0.9](https://github.com/e-hengirmen/Huffman_Coding/tree/Version-0.9) 
+  * Compresses 1 file at a time
+  * Version 0.9 can not be used to compress folders
+  * Easier to understand
+  * Useful for educative purposes
