@@ -21,7 +21,7 @@ Self-made C++ **file archiver** and **archive extractor** programs based on Huff
 * [How does it work](#how-does-it-work)
   * [Compressor](#compressor)
   * [Decompressor](#decompressor)
-* [How does one use it?](#how-does-one-use-it)
+* [How to use it?](#how-does-one-use-it)
 * [Versions](#versions)
 
 ## How does it work?
@@ -37,7 +37,7 @@ In the second pass, the program translates input files according to the translat
 The `Decompressor` is a 1-pass program:
 The `Decompressor` first reads translation info and creates a binary tree from it. After this process is done, it uses this binary translation tree to decode the rest of the file
 
-## How does one use it?
+## How to use it?
 1. Compile with `make` using your favourate shell:
 ```
 make all
