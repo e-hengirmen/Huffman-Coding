@@ -21,7 +21,7 @@ Self-made C++ **file archiver** and **archive extractor** programs based on Huff
 * [How does it work](#how-does-it-work)
   * [Compressor](#compressor)
   * [Decompressor](#decompressor)
-* [How to use it?](#how-does-one-use-it)
+* [How to use it?](#how-to-use-it)
 * [Versions](#versions)
 
 ## How does it work?
