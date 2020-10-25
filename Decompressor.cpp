@@ -118,7 +118,7 @@ int main(int argc,char *argv[]){
         // and stores transformation info into binary translation tree for later use
     unsigned char current_byte=0,current_character;
     int current_bit_count=0,len;
-    translation *root=(translation*)malloc(sizeof(translation));
+    translation *root=new translation;
     root->zero=NULL;
     root->one=NULL;
 
@@ -239,7 +239,7 @@ void translate_folder(string path,unsigned char &current_byte,int &current_bit_c
 void burn_tree(translation *node){
     if(node->zero)burn_tree(node->zero);
     if(node->one)burn_tree(node->one);
-    free(node);
+    delete node;
 }
 
 
@@ -257,7 +257,7 @@ void process_n_bits_TO_STRING(unsigned char &current_byte,int n,int &current_bit
         switch(current_byte&check){
             case 0:
             if(!(node->zero)){
-                node->zero=(translation*)malloc(sizeof(translation));
+                node->zero=new translation;
                 node->zero->zero=NULL;
                 node->zero->one=NULL;
             }
@@ -265,7 +265,7 @@ void process_n_bits_TO_STRING(unsigned char &current_byte,int n,int &current_bit
             break;
             case 128:
             if(!(node->one)){
-                node->one=(translation*)malloc(sizeof(translation));
+                node->one=new translation;
                 node->one->zero=NULL;
                 node->one->one=NULL;
             }
