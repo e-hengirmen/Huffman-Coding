@@ -13,13 +13,13 @@
     <img src="https://img.shields.io/badge/-LinkedIn-black.svg?style=plastic-square&logo=linkedin&colorB=555"
       alt="linkedin" />
   </a>
-  <a href="https://github.com/e-hengirmen/Huffman-Coding/issues?q=is%3Aissue+is%3Aclosed">
-    <img src="https://img.shields.io/github/issues-closed-raw/e-hengirmen/huffman-coding"
-      alt="closed issues" />
-  </a>
   <a href="https://github.com/e-hengirmen/Huffman-Coding/issues">
     <img src="https://img.shields.io/github/issues-raw/e-hengirmen/huffman-coding"
       alt="open issues" />
+  </a>
+  <a href="https://github.com/e-hengirmen/Huffman-Coding/issues?q=is%3Aissue+is%3Aclosed">
+    <img src="https://img.shields.io/github/issues-closed-raw/e-hengirmen/huffman-coding"
+      alt="closed issues" />
   </a>
 </p>
 
