@@ -63,6 +63,25 @@ fourth (2 bytes)**          ->  file_count (inside the current folder)
 
 */
 
+struct progress{
+    long int MAX=0,CURRENT=0,LAST=0;
+    int percentage=0;
+    void next(long int a){
+        CURRENT+=LAST;
+        LAST=a;
+        if(CURRENT*100/MAX>percentage){
+            percentage=CURRENT*100/MAX;
+            BAR();
+        }
+    }
+    void BAR(){
+        system("clear");
+        cout<<'[';
+        for(int i=1;i<=percentage;i++)cout<<'#';
+        for(int i=1;i<=100-percentage;i++)cout<<':';
+        cout<<"]:%"<<percentage<<endl;
+    }
+}PROGRESS;
 
 struct ersel{   //this structure will be used to create the translation tree
     ersel *left,*right;
@@ -374,7 +393,7 @@ int main(int argc,char *argv[]){
 
 
 
-
+    PROGRESS.MAX=(array+letter_count*2-2)->number;      //setting progress bar
 
     //-------------writes fourth---------------
     write_file_count(argc-1,current_byte,current_bit_count,compressed_fp);
@@ -434,6 +453,7 @@ int main(int argc,char *argv[]){
     }
 
     fclose(compressed_fp);
+    system("clear");
     cout<<endl<<"Created compressed file: "<<scompressed<<endl;
     cout<<"Compression is complete"<<endl;
     
@@ -467,6 +487,7 @@ void write_file_count(int file_count,unsigned char &current_byte,int current_bit
 //This function is writing byte count of current input file to compressed file using 8 bytes
     //It is done like this to make sure that it can work on little, big or middle-endian systems
 void write_file_size(long int size,unsigned char &current_byte,int current_bit_count,FILE *compressed_fp){
+    PROGRESS.next(size);        //updating progress bar
     for(int i=0;i<8;i++){
         write_from_uChar(size%256,current_byte,current_bit_count,compressed_fp);
         size/=256;

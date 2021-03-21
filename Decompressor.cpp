@@ -15,6 +15,26 @@ struct translation{
     unsigned char character;
 };
 
+struct progress{
+    long int MAX=0,CURRENT=0,LAST=0;
+    int percentage=0;
+    void next(long int a){
+        CURRENT+=LAST;
+        LAST=a;
+        if(CURRENT*100/MAX>percentage){
+            percentage=CURRENT*100/MAX;
+            BAR();
+        }
+    }
+    void BAR(){
+        system("clear");
+        cout<<'[';
+        for(int i=1;i<=percentage;i++)cout<<'#';
+        for(int i=1;i<=100-percentage;i++)cout<<':';
+        cout<<"]:%"<<percentage<<endl;
+    }
+}PROGRESS;
+
 bool this_is_a_file(unsigned char&,int&,FILE*);
 long int read_file_size(unsigned char&,int,FILE*);
 void write_file_name(char*,int,unsigned char&,int&,translation*,FILE*);
@@ -76,6 +96,9 @@ int main(int argc,char *argv[]){
         cout<<argv[1]<<" does not exist"<<endl;
         return 0;
     }
+    fseek(fp_compressed,0,SEEK_END);
+    PROGRESS.MAX=ftell(fp_compressed);      //setting progress bar
+    fseek(fp_compressed,0,SEEK_SET);
 
 
 
@@ -185,6 +208,7 @@ int main(int argc,char *argv[]){
 
     fclose(fp_compressed);
     burn_tree(root);
+    system("clear");
     cout<<"Decompression is complete"<<endl;
 }
 
@@ -366,6 +390,7 @@ long int read_file_size(unsigned char &current_byte,int current_bit_count,FILE *
             multiplier*=256;
         }
     }
+    PROGRESS.next(size);    //updating progress bar
     return size;
     // Size was written to the compressed file from least significiant byte 
     // to the most significiant byte to make sure system's endianness
