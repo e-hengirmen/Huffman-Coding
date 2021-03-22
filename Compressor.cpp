@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <dirent.h>
+#include "progress_bar.hpp"
 
 using namespace std;
 
@@ -63,25 +64,7 @@ fourth (2 bytes)**          ->  file_count (inside the current folder)
 
 */
 
-struct progress{
-    long int MAX=0,CURRENT=0,LAST=0;
-    int percentage=0;
-    void next(long int a){
-        CURRENT+=LAST;
-        LAST=a;
-        if(CURRENT*100/MAX>percentage){
-            percentage=CURRENT*100/MAX;
-            BAR();
-        }
-    }
-    void BAR(){
-        system("clear");
-        cout<<'[';
-        for(int i=1;i<=percentage;i++)cout<<'#';
-        for(int i=1;i<=100-percentage;i++)cout<<':';
-        cout<<"]:%"<<percentage<<endl;
-    }
-}PROGRESS;
+progress PROGRESS;
 
 struct ersel{   //this structure will be used to create the translation tree
     ersel *left,*right;

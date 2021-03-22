@@ -6,6 +6,8 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "progress_bar.hpp"
+
 using namespace std;
 
 const unsigned char check=0b10000000;
@@ -15,25 +17,7 @@ struct translation{
     unsigned char character;
 };
 
-struct progress{
-    long int MAX=0,CURRENT=0,LAST=0;
-    int percentage=0;
-    void next(long int a){
-        CURRENT+=LAST;
-        LAST=a;
-        if(CURRENT*100/MAX>percentage){
-            percentage=CURRENT*100/MAX;
-            BAR();
-        }
-    }
-    void BAR(){
-        system("clear");
-        cout<<'[';
-        for(int i=1;i<=percentage;i++)cout<<'#';
-        for(int i=1;i<=100-percentage;i++)cout<<':';
-        cout<<"]:%"<<percentage<<endl;
-    }
-}PROGRESS;
+progress PROGRESS;
 
 bool this_is_a_file(unsigned char&,int&,FILE*);
 long int read_file_size(unsigned char&,int,FILE*);
