@@ -6,13 +6,21 @@ struct progress{
     // It isn't neccessary for the program
     long int MAX=0,CURRENT=0,LAST=0;
     int percentage=0;
-    void next(long int a){
-        CURRENT+=LAST;
-        LAST=a;
+    
+    void update(){
         if(CURRENT*100/MAX>percentage){
             percentage=CURRENT*100/MAX;
             BAR();
         }
+    }
+    void current(long int a){
+        CURRENT=a;
+        update();
+    }
+    void next(long int a){
+        CURRENT+=LAST;
+        LAST=a;
+        update();
     }
     void BAR(){
         system("clear");

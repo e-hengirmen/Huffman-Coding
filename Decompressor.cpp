@@ -374,7 +374,7 @@ long int read_file_size(unsigned char &current_byte,int current_bit_count,FILE *
             multiplier*=256;
         }
     }
-    PROGRESS.next(size);    //updating progress bar
+    PROGRESS.current(ftell(fp_compressed));    //updating progress bar
     return size;
     // Size was written to the compressed file from least significiant byte 
     // to the most significiant byte to make sure system's endianness
